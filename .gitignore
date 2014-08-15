@@ -1,0 +1,26 @@
+*.swp
+*.swo
+
+# YARD
+.yardoc
+
+# Gemfile
+*.gem
+
+# Code coverage
+coverage
+
+# rbenv
+.ruby-version
+
+# Bundler
+.bundle
+
+# Mac OSX files
+.DS_Store
+
+bin
+
+.idea
+
+tmp/
