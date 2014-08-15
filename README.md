@@ -44,3 +44,9 @@ To run unit tests:
 
     bundle exec yard
     bundle exec yard server
+
+## License
+
+This software is released under the [MIT License](http://www.opensource.org/licenses/MIT). Please see  [LICENSE](LICENSE) for further details.
+
+Copyright (c) 2014 RightScale
