@@ -415,7 +415,6 @@ module Praxis::Mapper
 
 
     def identities
-      p [:data, @data]
       self.class._identities.each_with_object(Hash.new) do |identity, hash|
         case identity
         when Symbol
