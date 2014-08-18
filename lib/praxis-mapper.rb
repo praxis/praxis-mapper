@@ -42,14 +42,10 @@ module Praxis
   end
 end
 
-
-#require 'attributor'
-
 require 'praxis-mapper/finalizable'
 require 'praxis-mapper/logging'
 
 require 'praxis-mapper/identity_map'
-
 
 require 'praxis-mapper/model'
 require 'praxis-mapper/query_statistics'

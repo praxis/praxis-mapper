@@ -2,6 +2,10 @@
 
 ## next
 
+* Next feature description here 
+
+## 3.1
+
 * Begin migration to Sequel for `Query::Sql`. 
   * `#_execute` uses it for a database-agnostic adapter for running raw SQL.
   * `#_multi_get` uses it generate a datbase-agnostic where clause
@@ -66,7 +70,7 @@ The `Model` accessor changes may break existing applications that (incorrectly) 
 
 ## 0.3.0
 
-* identity map hotfix for https://rightsite.gitsrc.com/trac/ticket/16738
+* identity map hotfix
 
 
 ## 0.2.0
