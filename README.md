@@ -1,4 +1,8 @@
-# Praxis::Mapper
+# Praxis::Mapper [![TravisCI][travis-img-url]][travis-ci-url] 
+
+[travis-img-url]:https://travis-ci.org/rightscale/praxis-mapper.svg?branch=master
+[travis-ci-url]:https://travis-ci.org/rightscale/praxis-mapper
+
 
 Praxis::Mapper is a library that allows for large amounts of data to be loaded for a tree of associated models,
 while minimizing requests to external services.
