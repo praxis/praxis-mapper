@@ -108,6 +108,25 @@ describe Praxis::Mapper::IdentityMap do
 
     end
 
+    context 'where :staged' do
+      after do
+        identity_map.load AddressModel do
+          where :staged
+          track :foobar
+        end
+      end
+      it 'calls finalize_model!' do
+        identity_map.should_receive(:finalize_model!).with(AddressModel, anything())
+      end
+      it 'removes the :staged from the query where clause' do
+        identity_map.should_receive(:finalize_model!) do |model, query|
+          model.should be(AddressModel)
+          query.where.should be(nil)
+          query.track.should eq(Set.new([:foobar])) 
+        end
+      end
+    end
+
     context 'with a query with a subload' do
       context 'for a many_to_one association' do
         before do
