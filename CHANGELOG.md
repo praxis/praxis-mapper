@@ -2,7 +2,7 @@
 
 ## next
 
-* Next feature description here 
+* Fixed handling of loads where :staged, which could cause an incorrect underlying query using a "staged" column.
 
 ## 3.1
 

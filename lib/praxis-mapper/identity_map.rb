@@ -113,7 +113,10 @@ module Praxis::Mapper
       query_class = @connection_manager.repository(model.repository_name)[:query]
       query = query_class.new(self, model, &block)
 
-      return finalize_model!(model, query) if query.where == :staged
+      if query.where == :staged
+        query.where = nil
+        return finalize_model!(model, query)
+      end
 
       records = query.execute
       add_records(records)
