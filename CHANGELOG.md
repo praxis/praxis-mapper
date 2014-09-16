@@ -2,7 +2,12 @@
 
 ## next
 
+* Next feature or fix here.
+
+## 3.1.2
+
 * Fixed handling of loads where :staged, which could cause an incorrect underlying query using a "staged" column.
+* Relaxed ActiveSupport version dependency from 4 to >=3
 
 ## 3.1
 
