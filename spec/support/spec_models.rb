@@ -129,7 +129,7 @@ class PersonModel < Praxis::Mapper::Model
     model AddressModel
     key :address_id # people.address_id
   end
-
+               
   one_to_many :properties do
     model AddressModel
     primary_key :id #people.id
