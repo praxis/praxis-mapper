@@ -3,33 +3,56 @@ require 'active_support/inflector'
 # A resource creates a data store and instantiates a list of models that it wishes to load, building up the overall set of data that it will need.
 # Once that is complete, the data set is iterated and a resultant view is generated.
 module Praxis::Mapper
+
+  class ResourceDecorator < BasicObject
+    def initialize(parent, object)
+      @parent = parent
+      @object = object # store obj for future use
+    end
+
+    def respond_to_missing?(name, include_private = false)
+      @object.respond_to?(name, include_private) || super
+    end
+
+    def method_missing(name,*args, &block)
+      @object.send(name, *args, &block)
+    end
+
+    def __getobj__
+      @object
+    end
+  end
+
+
   class Resource
     extend Finalizable
 
     attr_accessor :record
-    
+
+    class << self
+      attr_reader :model_map
+      attr_reader :decorations
+    end
+
     # TODO: also support an attribute of sorts on the versioned resource module. ie, V1::Resources.api_version.
-    #       replacing the self == Praxis::Mapper::Resource condition below.
+    #       replacing the self.superclass == Praxis::Mapper::Resource condition below.
     def self.inherited(klass)
       super
 
-      # It is expected that each versioned set of resources will have a common Base class.
-      # self is Praxis::Mapper::Resource only for Base resource classes which are versioned.
-      if self == Praxis::Mapper::Resource
-        klass.instance_variable_set(:@model_map, Hash.new)
-      elsif defined?(@model_map)
-        klass.instance_variable_set(:@model_map, @model_map)
-      end
-    end
+      klass.instance_eval do
+        # It is expected that each versioned set of resources
+        # will have a common Base class, and so should share
+        # a model_map
+        if self.superclass == Praxis::Mapper::Resource
+          @model_map = Hash.new
+        else
+          @model_map = self.superclass.model_map 
+        end
 
-    def self.model_map
-      if defined? @model_map
-        return @model_map
-      else
-        return {}
+        @decorations = {}
       end
-    end
 
+    end
 
     #TODO: Take symbol/string and resolve the klass (but lazily, so we don't care about load order)
     def self.model(klass=nil)
@@ -41,9 +64,16 @@ module Praxis::Mapper
       end
     end
 
+
+    def self.decorate(name, &block)
+      self.decorations[name] = Class.new(ResourceDecorator, &block)
+    end
+
     def self._finalize!
       finalize_resource_delegates
       define_model_accessors
+      define_decorators
+
       super
     end
 
@@ -60,6 +90,7 @@ module Praxis::Mapper
 
     def self.define_model_accessors
       return if model.nil?
+
       model.associations.each do |k,v|
         if self.instance_methods.include? k
           warn "WARNING: #{self.name} already has method named #{k.inspect}. Will not define accessor for resource association."
@@ -68,6 +99,29 @@ module Praxis::Mapper
       end
     end
 
+
+    def self.define_decorators
+      self.decorations.each do |name,block|
+        self.define_decorator(name, block)
+      end
+    end
+
+    def self.define_decorator(name, block)
+      unless self.instance_methods.include?(name)
+        # assume it'll be a regular accessor and create it 
+        self.define_accessor(name)
+      end
+      # alias original method and wrap it 
+      raw_name = "_raw_#{name}"
+      alias_method(raw_name.to_sym, name)
+
+      module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{name}
+          object = self.#{raw_name}
+          self.class.decorations[#{name.inspect}].new(self, object)
+        end
+      RUBY
+    end
 
     def self.for_record(record)
       return record._resource if record._resource
@@ -109,14 +163,6 @@ module Praxis::Mapper
     end
 
 
-    def initialize(record)
-      @record = record
-    end
-
-    def respond_to_missing?(name,*)
-      @record.respond_to?(name) || super
-    end
-
     def self.resource_delegates
       @resource_delegates ||= {}
     end
@@ -127,17 +173,18 @@ module Praxis::Mapper
       end
     end
 
-    # Defines wrapers for model associations that return Resources
+    # Defines wrappers for model associations that return Resources
     def self.define_model_association_accessor(name, association_spec)
       association_model = association_spec.fetch(:model)
       association_resource_class = model_map[association_model]
+
       if association_resource_class
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{name}
-            records = record.#{name}
+        def #{name}
+          records = record.#{name}
             return nil if records.nil?
-            @__#{name} ||= #{association_resource_class}.wrap(records)
-          end
+          @__#{name} ||= #{association_resource_class}.wrap(records)
+        end
         RUBY
       end
     end
@@ -154,13 +201,12 @@ module Praxis::Mapper
     end
 
 
-
     def self.define_delegation_for_related_attribute(resource_name, resource_attribute)
       module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{resource_attribute}
           @__#{resource_attribute} ||= if (rec = self.#{resource_name})
-            rec.#{resource_attribute}
-          end
+          rec.#{resource_attribute}
+            end
         end
       RUBY
     end
@@ -172,11 +218,11 @@ module Praxis::Mapper
       module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{resource_attribute}
           @__#{resource_attribute} ||= if (rec = self.#{resource_name})
-            if (related = rec.#{resource_attribute})
-              #{related_resource_class.name}.wrap(related)
-            end
+          if (related = rec.#{resource_attribute})
+            #{related_resource_class.name}.wrap(related)
           end
         end
+      end
       RUBY
     end
 
@@ -188,11 +234,20 @@ module Praxis::Mapper
       end
 
       module_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def #{name}
-          return @__#{ivar_name} if defined? @__#{ivar_name}
-          @__#{ivar_name} = record.#{name}
-        end
+      def #{name}
+        return @__#{ivar_name} if defined? @__#{ivar_name}
+        @__#{ivar_name} = record.#{name}
+      end
       RUBY
+    end
+
+
+    def initialize(record)
+      @record = record
+    end
+
+    def respond_to_missing?(name,*)
+      @record.respond_to?(name) || super
     end
 
     def method_missing(name,*args)

@@ -21,7 +21,6 @@ describe Praxis::Mapper::Resource do
     its(:collection_name) { should == 'simple_resources' }
   end
 
-
   context 'retrieving resources' do
 
     context 'getting a single resource' do
@@ -113,6 +112,43 @@ describe Praxis::Mapper::Resource do
     end
   end
 
+
+  context 'decorate' do
+    let(:person_record) do
+      PersonModel.new(id: 1, email: "one@example.com", address_id: 2)
+    end
+
+    let(:address_record) do
+      AddressModel.new(id: 2, owner_id: 1, state: 'OR')
+    end
+
+    before do
+      identity_map.add_records([person_record])
+      identity_map.add_records([address_record])
+    end
+
+    subject(:person) { PersonResource.for_record(person_record) }
+    let(:address){ AddressResource.for_record(address_record) }
+
+    it 'wraps the decorated associations in a ResourceDecorator' do
+      # somewhat hard to test, as ResourceDecorator uses BasicObject
+      person.address.should_not be(address)
+      person.address.__getobj__.should be(address)
+    end
+
+
+    it 'decorates many_to_one associations properly' do
+      person.address.href.should eq('/people/1/address')
+      person.address.state.should eq('OR')
+      address.href.should eq('/addresses/2')
+
+    end
+
+    it 'decorates one_to_many associations properly' do
+      person.properties.href.should eq('/people/1/properties')
+      person.properties.first.should be(address)
+    end
+  end
 
   context "memoized resource creation" do
     let(:other_name) { "foo" }

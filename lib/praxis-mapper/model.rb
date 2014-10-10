@@ -18,16 +18,13 @@ module Praxis::Mapper
 
       klass.instance_eval do
         @config = {
-          :belongs_to => {},
-          :excluded_scopes => [],
-          :identities => []
+          excluded_scopes: [],
+          identities: []
         }
         @associations = {}
         @serialized_fields = {}
         @contexts = Hash.new
       end
-
-
     end
 
     # Internal finalize! logic

@@ -37,3 +37,34 @@ end
 class YamlArrayResource < BaseResource
   model YamlArrayModel
 end
+
+
+class PersonResource < BaseResource
+  model PersonModel
+
+  decorate :address do
+    def href
+      @parent.href + "/address"
+    end
+  end
+
+  decorate :properties do
+    def href
+      @parent.href + "/properties"
+    end
+  end
+
+  def href
+    "/people/#{self.id}"
+  end
+
+end
+
+class AddressResource < BaseResource
+  model AddressModel
+
+  def href 
+    "/addresses/#{self.id}"
+  end
+end
+

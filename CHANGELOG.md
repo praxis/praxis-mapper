@@ -2,7 +2,7 @@
 
 ## next
 
-* Next feature or fix here.
+* Add `Resource.decorate` for extending/overriding methods on Resource associations. See `PersonResource` in [spec_resources.rb](spec/support/spec_resources.rb) for usage. 
 
 ## 3.1.2
 
