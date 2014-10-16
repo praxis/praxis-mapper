@@ -15,7 +15,7 @@ module Praxis::Mapper
     end
 
     def method_missing(name,*args, &block)
-      @object.send(name, *args, &block)
+      @object.__send__(name, *args, &block)
     end
 
     def __getobj__
@@ -137,17 +137,17 @@ module Praxis::Mapper
     end
 
 
-    def self.wrap(records)
-      case records
-      when Model
-        return self.for_record(records)
-      when nil
-        # Return an empty set if `records` is nil
-        return []
-      else
-        return records.collect { |record| self.for_record(record) }
-      end
+  def self.wrap(records)
+    case records
+    when nil
+      return []
+    when Enumerable
+      return records.collect { |record| self.for_record(record) }
+    else
+      return self.for_record(records)
     end
+  end
+
 
 
     def self.get(condition)
