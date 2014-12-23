@@ -1,6 +1,6 @@
 # praxis-mapper changelog
 
-## next
+## 3.2.0
 
 * Add `Resource.decorate` for extending/overriding methods on Resource associations. See `PersonResource` in [spec_resources.rb](spec/support/spec_resources.rb) for usage. 
 
