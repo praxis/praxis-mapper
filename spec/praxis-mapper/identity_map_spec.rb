@@ -774,6 +774,13 @@ describe Praxis::Mapper::IdentityMap do
         identity_map.all(SimpleModel, :id => [4]).should =~ []
       end
 
+      it 'does not return nil for records that were not found' do
+        results = identity_map.all(SimpleModel, :id => [1,4])
+        results.should have(1).item
+        results.should eq(identity_map.all(SimpleModel, :id => [1]))
+      end
+
+
     end
 
     context '#row_by_key' do

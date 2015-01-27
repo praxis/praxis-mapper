@@ -182,6 +182,12 @@ describe Praxis::Mapper::Resource do
       wrapped_obj.length.should be(0)
     end
 
+    it 'works array with nil member, returning only existing records' do
+      wrapped_set = SimpleResource.wrap([nil, record])
+      wrapped_set.should be_kind_of(Array)
+      wrapped_set.length.should be(1)
+    end
+
     it 'works regardless of the resource class used' do
       SimpleResource.wrap(record).should be(OtherResource.wrap(record))
     end

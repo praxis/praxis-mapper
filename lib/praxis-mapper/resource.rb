@@ -142,7 +142,7 @@ module Praxis::Mapper
     when nil
       return []
     when Enumerable
-      return records.collect { |record| self.for_record(record) }
+      return records.compact.collect { |record| self.for_record(record) }
     else
       return self.for_record(records)
     end
