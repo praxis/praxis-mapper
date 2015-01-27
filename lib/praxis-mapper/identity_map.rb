@@ -336,7 +336,7 @@ module Praxis::Mapper
         if @row_keys[model].has_key?(key)
           res = row_by_key(model, key, value)
           if res
-            [row_by_key(model, key, value)]
+            [res]
           else
             []
           end
@@ -347,7 +347,7 @@ module Praxis::Mapper
         if @row_keys[model].has_key?(key)
           values.collect do |value|
             row_by_key(model, key, value)
-          end
+          end.compact
         else
           values.each_with_object(Array.new) do |value, results|
             results.push *index(model, key, value)
