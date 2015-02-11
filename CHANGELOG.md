@@ -2,6 +2,8 @@
 
 ## next
 
+## 3.3.0
+
 * Tightened up handling of missing records in `IdentityMap#all` and `Resource.wrap`. They now will never return `nil` values.
 
 

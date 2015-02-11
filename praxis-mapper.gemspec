@@ -7,7 +7,6 @@ Gem::Specification.new do |spec|
   spec.name          = "praxis-mapper"
   spec.version       = Praxis::Mapper::VERSION
   spec.authors = ["Josep M. Blanquer","Dane Jensen"]
-  spec.date = "2014-08-18"
   spec.summary       = %q{A multi-datastore library designed for efficiency in loading large datasets.}
   spec.email = ["blanquer@gmail.com","dane.jensen@gmail.com"]
   
