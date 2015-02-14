@@ -55,6 +55,7 @@ require 'praxis-mapper/resource'
 
 require 'praxis-mapper/query/base'
 require 'praxis-mapper/query/sql'
+require 'praxis-mapper/query/sequel'
 
 
 require 'praxis-mapper/config_hash'
