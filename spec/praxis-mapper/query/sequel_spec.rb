@@ -39,5 +39,19 @@ describe Praxis::Mapper::Query::Sequel do
     connection.sqls.should eq(["SELECT id, name FROM items WHERE (name = 'something') LIMIT 10"])
   end
 
-end
+  context '#raw' do
+    subject(:query) do
+      Praxis::Mapper::Query::Sequel.new(identity_map, ItemModel) do
+        raw 'select something from somewhere limit a-few'
+      end
+    end
 
+    its(:sql) { should eq('select something from somewhere limit a-few') }
+    it 'uses the raw query when executed' do
+      connection.sqls.should be_empty
+      query.execute
+      connection.sqls.should eq(["select something from somewhere limit a-few"])
+    end
+  end
+
+end

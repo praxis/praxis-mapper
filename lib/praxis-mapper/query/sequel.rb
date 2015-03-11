@@ -56,7 +56,11 @@ module Praxis::Mapper
         self.statistics[:datastore_interactions] += 1
         start_time = Time.now
 
-        rows = (ds || self.dataset).to_a
+        rows = if @raw_query
+          connection.run(@raw_query).to_a
+        else
+          (ds || self.dataset).to_a
+        end
 
         self.statistics[:datastore_interaction_time] += (Time.now - start_time)
         return rows
@@ -73,12 +77,16 @@ module Praxis::Mapper
       # @param sql_text a custom SQL query
       #
       def raw(sql_text)
-        raise 'not supported yet'
+        @raw_query = sql_text
       end
 
       # @return [String] raw or assembled SQL statement
       def sql
-        dataset.sql
+        if @raw_query
+          @raw_query
+        else
+          dataset.sql
+        end
       end
 
 
