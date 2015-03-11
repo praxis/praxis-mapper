@@ -259,23 +259,5 @@ module Praxis::Mapper
       end
     end
 
-    def self.member_name
-      @_member_name ||= self.name.split("::").last.underscore
-    end
-
-    def self.collection_name
-      @_collection_name ||= self.member_name.pluralize
-    end
-
-    def member_name
-      self.class.member_name
-    end
-
-    alias :type :member_name
-
-    def collection_name
-      self.class.collection_name
-    end
-
   end
 end

@@ -129,7 +129,7 @@ class PersonModel < Praxis::Mapper::Model
     model AddressModel
     key :address_id # people.address_id
   end
-               
+
   one_to_many :properties do
     model AddressModel
     primary_key :id #people.id
@@ -206,10 +206,31 @@ class AddressModel  < Praxis::Mapper::Model
 
 end
 
+
+
 class ItemModel < Praxis::Mapper::Model
   table_name 'items'
   repository_name :sql
-  
+
   identity :id
+
+  one_to_many :parts do
+    model PartModel
+    key :item_id # parts.item_id
+  end
+
+end
+
+
+class PartModel < Praxis::Mapper::Model
+  table_name 'parts'
+  repository_name :sql
+
+  identity :id
+
+  many_to_one :item do
+    model ItemModel
+    key :item_id # parts.item_id
+  end
 
 end

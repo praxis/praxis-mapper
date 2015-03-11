@@ -17,8 +17,6 @@ describe Praxis::Mapper::Resource do
   context 'configuration' do
     subject { SimpleResource }
     its(:model) { should == model }
-    its(:member_name) { should == 'simple_resource' }
-    its(:collection_name) { should == 'simple_resources' }
   end
 
   context 'retrieving resources' do

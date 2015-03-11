@@ -5,7 +5,8 @@
 ## 3.3.0
 
 * Tightened up handling of missing records in `IdentityMap#all` and `Resource.wrap`. They now will never return `nil` values.
-
+* Add preliminary Sequel-centric `Query::Sequel` class that exposes a a Sequel dataset with an interface compatible with other `Query` types.
+* Removed `member_name` and `collection_name` methods from `Resource`, as well as the `type` alias.
 
 ## 3.2.0
 

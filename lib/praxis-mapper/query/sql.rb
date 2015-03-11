@@ -75,6 +75,9 @@ module Praxis::Mapper
         self.statistics[:datastore_interactions] += 1
         start_time = Time.now
 
+        if @where && @raw_query
+          warn 'WARNING: Query::Sql#_execute ignoring requested `where` clause due to specified raw SQL'
+        end
         rows = connection.fetch(self.sql).to_a
 
         self.statistics[:datastore_interaction_time] += (Time.now - start_time)
