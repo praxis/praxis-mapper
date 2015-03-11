@@ -74,7 +74,6 @@ module Praxis::Mapper
       #
       def raw(sql_text)
         raise 'not supported yet'
-        @raw_query = sql_text
       end
 
       # @return [String] raw or assembled SQL statement
