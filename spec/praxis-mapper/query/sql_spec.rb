@@ -48,6 +48,7 @@ describe Praxis::Mapper::Query::Sql do
     it 'uses the exact raw query for the final SQL statement' do
       subject.sql.should eq("SELECT id, parent_id\nFROM table\nWHERE id=123\nGROUP BY id")
     end
+
   end
 
 
@@ -156,7 +157,7 @@ describe Praxis::Mapper::Query::Sql do
                    {:id => 3, :name => "snafu", :parent_id => 3}
     ] }
 
-    subject { Praxis::Mapper::Query::Sql.new(identity_map, SimpleModel) }
+    subject(:query) { Praxis::Mapper::Query::Sql.new(identity_map, SimpleModel) }
     before do
       connection.should_receive(:fetch).and_return(rows)
       identity_map.should_receive(:connection).with(:default).and_return(connection)
@@ -166,18 +167,25 @@ describe Praxis::Mapper::Query::Sql do
     end
 
     it 'wraps database results in SimpleModel instances' do
-      records = subject.execute
+      records = query.execute
       records.each { |record| record.should be_kind_of(SimpleModel) }
     end
 
     it "tracks datastore interactions" do
-      subject.execute
-      subject.statistics[:datastore_interactions].should == 1
+      query.execute
+      query.statistics[:datastore_interactions].should == 1
     end
 
     it 'times datastore interactions' do
-      subject.execute
-      subject.statistics[:datastore_interaction_time].should == 10
+      query.execute
+      query.statistics[:datastore_interaction_time].should == 10
+    end
+
+    it 'warns when if a where clause and raw sql are used together' do
+      query.should_receive(:warn).with("WARNING: Query::Sql#_execute ignoring requested `where` clause due to specified raw SQL")
+      query.where 'id=1'
+      query.raw 'select * from stuff'
+      query.execute
     end
 
   end

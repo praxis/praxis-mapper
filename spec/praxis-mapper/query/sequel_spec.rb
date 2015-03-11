@@ -27,19 +27,24 @@ describe Praxis::Mapper::Query::Sequel do
 
   its(:sql) { should eq("SELECT id, name FROM items WHERE (name = 'something') LIMIT 10")}
 
-  it 'multi_get' do
-    connection.sqls.should be_empty
-    query.multi_get(:id, [1,2])
-    connection.sqls.should eq(["SELECT id, name FROM items WHERE ((name = 'something') AND (id IN (1, 2))) LIMIT 10"])
+  context 'multi_get' do
+    it 'runs the correct sql' do
+      connection.sqls.should be_empty
+      query.multi_get(:id, [1,2])
+      connection.sqls.should eq(["SELECT id, name FROM items WHERE ((name = 'something') AND (id IN (1, 2))) LIMIT 10"])
+    end
   end
 
-  it 'execute' do
-    connection.sqls.should be_empty
-    query.execute
-    connection.sqls.should eq(["SELECT id, name FROM items WHERE (name = 'something') LIMIT 10"])
+  context 'execute' do
+    it 'runs the correct sql' do
+      connection.sqls.should be_empty
+      query.execute
+      connection.sqls.should eq(["SELECT id, name FROM items WHERE (name = 'something') LIMIT 10"])
+    end
   end
 
-  context '#raw' do
+
+  context 'with raw sql queries' do
     subject(:query) do
       Praxis::Mapper::Query::Sequel.new(identity_map, ItemModel) do
         raw 'select something from somewhere limit a-few'
@@ -52,6 +57,14 @@ describe Praxis::Mapper::Query::Sequel do
       query.execute
       connection.sqls.should eq(["select something from somewhere limit a-few"])
     end
+
+    it 'warns in _execute if a dataset is passed' do
+      connection.sqls.should be_empty
+      query.should_receive(:warn).with("WARNING: Query::Sequel#_execute ignoring passed dataset due to previously-specified raw SQL")
+      query._execute(query.dataset)
+      connection.sqls.should eq(["select something from somewhere limit a-few"])
+    end
+
   end
 
 end

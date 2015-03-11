@@ -57,6 +57,9 @@ module Praxis::Mapper
         start_time = Time.now
 
         rows = if @raw_query
+          unless ds.nil?
+            warn 'WARNING: Query::Sequel#_execute ignoring passed dataset due to previously-specified raw SQL'
+          end
           connection.run(@raw_query).to_a
         else
           (ds || self.dataset).to_a
