@@ -4,10 +4,6 @@
 module Praxis::Mapper
   class Model
 
-    def _data
-      @data
-    end
-
     def save!
       @new_record = true
       unless Praxis::Mapper::IdentityMap.current.add_records([self]).include? self

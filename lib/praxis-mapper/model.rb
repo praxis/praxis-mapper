@@ -422,6 +422,10 @@ module Praxis::Mapper
       end
     end
 
+    def _data
+      @data
+    end
+
   end
 
 end

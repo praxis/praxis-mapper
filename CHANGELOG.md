@@ -2,6 +2,9 @@
 
 ## next
 
+* Fixed `IdentityMap#load` to return the records from the identity map corresponding to rows returned from the database. This fixes a bug where loading rows already existing in the identity map would return new record objects rather than the objects in the map.
+* Added `Model#_data` accessor for raw record contents. 
+
 ## 3.3.0
 
 * Tightened up handling of missing records in `IdentityMap#all` and `Resource.wrap`. They now will never return `nil` values.

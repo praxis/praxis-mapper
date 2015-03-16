@@ -148,29 +148,33 @@ module Praxis::Mapper
       #
       # @param identity [Symbol|Array] a simple or composite key for this model
       # @param values [Array] list of identifier values (ideally a sorted set)
+      # @param select [Array] list of field names to select
+      # @param raw [Boolean] return raw hashes instead of models (default false)
       # @return [Array] list of matching records, wrapped as models
-      def multi_get(identity, values, select: nil)
+      def multi_get(identity, values, select: nil, raw: false)
         if self.frozen?
           raise TypeError.new "can not reuse a frozen query"
         end
 
         statistics[:multi_get] += 1
 
-        records = []
+        rows = []
 
         original_select = @select
         self.select *select.flatten.uniq if select
 
         values.each_slice(MULTI_GET_BATCH_SIZE) do |batch|
-          # create model objects for each row
-          records += _multi_get(identity, batch)
+          rows += _multi_get(identity, batch)
         end
 
-        statistics[:records_loaded] += records.size
-        records
+        statistics[:records_loaded] += rows.size
+
+        return rows if raw
+        to_records(rows)
       ensure
         @select = original_select unless self.frozen?
       end
+
 
       # Executes assembled read query and returns all matching records.
       #
@@ -184,13 +188,16 @@ module Praxis::Mapper
         rows = _execute
 
         statistics[:records_loaded] += rows.size
-        rows.collect do |row|
+        to_records(rows)
+      end
+
+      def to_records(rows)
+         rows.collect do |row|
           m = model.new(row)
           m._query = self
           m
         end
       end
-
 
       # Subclasses Must Implement
       def _multi_get(identity, values)

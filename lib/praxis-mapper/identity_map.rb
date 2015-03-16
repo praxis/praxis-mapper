@@ -107,6 +107,7 @@ module Praxis::Mapper
       @secondary_indexes =  Hash.new
     end
 
+
     def load(model, &block)
       raise "Can't load unfinalized model #{model}" unless model.finalized?
 
@@ -119,7 +120,7 @@ module Praxis::Mapper
       end
 
       records = query.execute
-      add_records(records)
+      actually_added = add_records(records)
 
       # TODO: refactor this to better-hide queries?
       query.freeze
@@ -127,7 +128,7 @@ module Praxis::Mapper
 
       subload(model, query,records)
 
-      records
+      actually_added
     end
 
     def stage_for!(spec, records)
@@ -164,11 +165,7 @@ module Praxis::Mapper
         new_query_class = @connection_manager.repository(associated_model.repository_name)[:query]
         new_query = new_query_class.new(self,associated_model, &block)
 
-        new_records = new_query.multi_get(key, values).collect do |row|
-          m = spec[:model].new(row)
-          m._query = new_query
-          m
-        end
+        new_records = new_query.multi_get(key, values)
 
         self.queries[associated_model].add(new_query)
 
@@ -239,7 +236,7 @@ module Praxis::Mapper
         non_identities.each do |key|
           values = @staged[model].delete(key)
 
-          rows = query.multi_get(key, values, select: model.identities)
+          rows = query.multi_get(key, values, select: model.identities, raw: true)
           rows.each do |row|
             model.identities.each do |identity|
               if identity.kind_of? Array
@@ -259,18 +256,12 @@ module Praxis::Mapper
         next if values.empty?
 
         query.where = nil # clear out any where clause from non-identity
-        records = query.multi_get(identity_name, values).collect do |row|
-          m = model.new(row)
-          m._query = query
-          m
-        end
-
-        add_records(records)
+        records = query.multi_get(identity_name, values)
 
         # TODO: refactor this to better-hide queries?
         self.queries[model].add(query)
 
-        results.merge(records)
+        results.merge(add_records(records))
 
         # add nil records for records that were not found by the multi_get
         missing_keys = self.get_staged(model,identity_name)
@@ -389,22 +380,6 @@ module Praxis::Mapper
       @connection_manager.checkout(name)
     end
 
-
-    def <<(record)
-      model = record.class
-
-      @rows[model] << record
-      record.identity_map = self
-
-      model.identities.each do |identity|
-        key = record.send(identity)
-
-        get_staged(model, identity).delete(key)
-        @row_keys[model][identity][key] = record
-      end
-    end
-
-
     def extract_keys(field, records)
       row_keys = []
       if field.kind_of?(Array) # composite identities
@@ -463,9 +438,8 @@ module Praxis::Mapper
 
 
     def add_records(records)
-      return if records.empty?
-
       records_added = Array.new
+      return records_added if records.empty? 
 
       to_stage = Hash.new do |hash,staged_model|
         hash[staged_model] = Hash.new do |identities, identity_name|
@@ -495,10 +469,8 @@ module Praxis::Mapper
 
       end
 
-      records.each do |record|
-        if add_record(record)
-          records_added << record
-        end
+      records_added = records.collect do |record|
+        add_record(record)
       end
 
       to_stage.each do |model_to_stage, data|
@@ -509,14 +481,18 @@ module Praxis::Mapper
     end
 
 
+    # return the record provided (if added to the identity map)
+    # or return the corresponding record if it was already present
     def add_record(record)
       model = record.class
       record.identities.each do |identity, key|
         # FIXME: Should we be overwriting (possibly) a "nil" value from before?
         #        (due to that row not being found by a previous query)
         #        (That'd be odd since that means we tried to load that same identity)
-
-        return false if @row_keys[model][identity].has_key? key
+        if (existing = @row_keys[model][identity][key])
+          # FIXME: should merge record into existing to add any additional fields
+          return existing
+        end
 
         get_staged(model, identity).delete(key)
         @row_keys[model][identity][key] = record
@@ -526,6 +502,8 @@ module Praxis::Mapper
       @rows[model] << record
       record
     end
+
+    alias_method :<<, :add_record
 
     def query_statistics
       QueryStatistics.new(queries)

@@ -14,6 +14,7 @@ describe Praxis::Mapper::IdentityMap do
                 {:id => 3, :name => "george xvi", :parent_id => 2, :description => "three"}
 
   ]}
+  let(:records) { rows.collect { |row| m = model.new(row); m._query = record_query; m } }
 
   let(:person_rows) {[
                        {id: 1, email: "one@example.com", address_id: 1, prior_address_ids:JSON.dump([2,3])},
@@ -23,7 +24,7 @@ describe Praxis::Mapper::IdentityMap do
                        {id: 5, email: "five@example.com", address_id: 3, prior_address_ids: nil}
 
   ]}
-
+  let(:person_records) { person_rows.collect { |row| m = PersonModel.new(row); m._query = record_query; m } }
   let(:address_rows) {[
                         {id: 1, owner_id: 1, state: 'OR'},
                         {id: 2, owner_id: 3, state: 'CA'},
@@ -106,6 +107,24 @@ describe Praxis::Mapper::IdentityMap do
         identity_map.load(model, &query_proc).should === records
       end
 
+    end
+
+
+    context 'loading a record that has previously been loaded' do
+      before do
+        identity_map.load PersonModel do
+          where id: 1
+        end
+      end
+
+      it 'returns the original object' do
+        existing_person = identity_map.get PersonModel, id: 1
+        people = identity_map.load PersonModel
+        people.find { |p| p.id == 1 }.should be(existing_person)
+
+        existing_people_ids = identity_map.all(PersonModel).collect(&:object_id)
+        people.collect(&:object_id).should =~ existing_people_ids
+      end
     end
 
     context 'where :staged' do
@@ -267,39 +286,43 @@ describe Praxis::Mapper::IdentityMap do
 
 
   context "#finalize_model!" do
+    let(:record_query) { nil }
 
     context 'with values staged for a single identity' do
       let(:stage) { {:id => [1,2] } }
 
       before do
-        identity_map.stage(model, stage)
+        identity_map.stage(PersonModel, stage)
       end
 
       it "does a multi-get for the unloaded ids and returns the query results" do
         Praxis::Mapper::Support::MemoryQuery.any_instance.
           should_receive(:multi_get).
           with(:id, Set.new(stage[:id])).
-          and_return(rows[0..1])
+          and_return(person_records[0..1])
         Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:freeze)
 
-        identity_map.finalize_model!(model).collect(&:id).should =~ rows[0..1].collect { |r| r[:id] }
+        identity_map.finalize_model!(PersonModel).collect(&:id).should =~ person_rows[0..1].collect { |r| r[:id] }
       end
 
       context 'tracking associations' do
-        let(:track) { :parent }
-
-        it 'sets the track attribute on the generated query' do
-          Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(rows[0..1])
-          Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:track).with(track).at_least(:once).and_call_original
-          Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:track).at_least(:once).and_call_original
-          Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:freeze)
-
-          track_field = track
-          query = Praxis::Mapper::Support::MemoryQuery.new(identity_map,model) do
-            track track_field
+        let(:query) do
+           Praxis::Mapper::Support::MemoryQuery.new(identity_map,PersonModel) do
+            track :address
           end
+        end
+        let(:record_query) { query }
 
-          identity_map.finalize_model!(model, query)
+        it 'stages asssociated identities' do
+          query.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(person_records[0..1])
+          query.should_receive(:freeze)
+
+          identity_map.all(PersonModel).should be_empty
+
+          identity_map.finalize_model!(PersonModel, query)
+
+          identity_map.all(PersonModel).should =~ person_records[0..1]
+          identity_map.get_staged(AddressModel, :id).should eq(Set[*person_records[0..1].collect(&:address_id)])
         end
       end
 
@@ -317,8 +340,8 @@ describe Praxis::Mapper::IdentityMap do
         query = Praxis::Mapper::Support::MemoryQuery.new(identity_map, model)
         Praxis::Mapper::Support::MemoryQuery.stub(:new).and_return(query)
 
-        query.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(rows[0..1])
-        query.should_receive(:multi_get).with(:name, Set.new(['george xvi'])).and_return([rows[2]])
+        query.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(records[0..1])
+        query.should_receive(:multi_get).with(:name, Set.new(['george xvi'])).and_return([records[2]])
         query.should_receive(:freeze).once
 
         expected = rows.collect { |r| r[:id] }
@@ -335,7 +358,7 @@ describe Praxis::Mapper::IdentityMap do
       before do
         identity_map.stage(model, stage)
 
-        Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(rows[0..1])
+        Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(records[0..1])
         Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:freeze)
       end
 
@@ -362,9 +385,9 @@ describe Praxis::Mapper::IdentityMap do
         Praxis::Mapper::Support::MemoryQuery.stub(:new).and_return(query)
 
         query.should_receive(:multi_get).
-          with(:owner_id, Set.new(stage[:owner_id]), select: [:id]).ordered.and_return(owner_id_response)
+          with(:owner_id, Set.new(stage[:owner_id]), select: [:id], raw: true).ordered.and_return(owner_id_response)
         query.should_receive(:multi_get).
-          with(:id, Set.new(stage[:id])).ordered.and_return(person_rows)
+          with(:id, Set.new(stage[:id])).ordered.and_return(person_records)
 
         query.should_receive(:freeze)
       end
@@ -557,6 +580,25 @@ describe Praxis::Mapper::IdentityMap do
 
 
   context "#add_records" do
+
+    context 'with records already existing in the identity_map' do
+
+      before do
+        identity_map.load PersonModel
+      end
+
+      it 'returns the existing records instead of the ones passed in' do
+        person_row = person_rows.first
+        person_record = PersonModel.new(person_row)
+
+        existing_person = identity_map.get(PersonModel, id: person_record.id )
+
+        add_result = identity_map.add_records([person_record])
+
+        add_result.first.should be(existing_person)
+        add_result.first.should_not be(person_record)
+      end
+    end
 
 
     context "with a tracked many_to_one association " do
@@ -784,14 +826,6 @@ describe Praxis::Mapper::IdentityMap do
     end
 
     context '#row_by_key' do
-      let(:stage) { {:id => [1,2,3,4]} }
-      before do
-        Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:multi_get).with(:id, Set.new(stage[:id])).and_return(rows)
-        Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:freeze)
-        identity_map.stage(model,stage)
-        identity_map.finalize_model!(model)
-      end
-
       it 'raises UnloadedRecordException for unknown records' do
         expect { identity_map.row_by_key(model,:id, 5) }.to raise_error(Praxis::Mapper::IdentityMap::UnloadedRecordException)
       end
