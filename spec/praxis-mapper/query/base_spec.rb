@@ -28,17 +28,14 @@ describe Praxis::Mapper::Query::Base do
 
       it 'delegates to the subclass' do
         query.should_receive(:_multi_get).and_return(rows)
-        response = query.multi_get(:id, ids)
 
-        response.should have(3).items
+        records = query.multi_get(:id, ids)
 
-        response.should eq(rows)
-        #record = response.first
-        #record.should be_kind_of(model)
+        records.should have(3).items
 
-        #rows.first.each do |attribute, value|
-        #  record.send(attribute).should == value
-        #end
+        records.zip(rows).each do |record, row|
+          record._data.should be(row)
+        end
 
       end
 
@@ -53,7 +50,7 @@ describe Praxis::Mapper::Query::Base do
 
         let(:result_size) { (batch_size * 2.5).to_i }
 
-        let(:values) { (0..result_size).to_a }
+        let(:values) { (0...result_size).to_a }
         let(:rows) { values.collect { |v| {:id => v} } }
 
         before do
@@ -66,7 +63,11 @@ describe Praxis::Mapper::Query::Base do
         end
 
         it 'batches queries and aggregates their results' do # FIXME: totally lame name for this
-          query.multi_get(:id, values).should =~ rows
+          records = query.multi_get(:id, values)
+          records.size.should eq(result_size)
+          records.zip(rows) do |record,row|
+            record._data.should be(row)
+          end
         end
       end
     end
