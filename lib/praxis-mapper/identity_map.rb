@@ -120,7 +120,7 @@ module Praxis::Mapper
       end
 
       records = query.execute
-      actually_added = add_records(records)
+      im_records = add_records(records)
 
       # TODO: refactor this to better-hide queries?
       query.freeze
@@ -128,7 +128,7 @@ module Praxis::Mapper
 
       subload(model, query,records)
 
-      actually_added
+      im_records
     end
 
     def stage_for!(spec, records)
@@ -438,8 +438,7 @@ module Praxis::Mapper
 
 
     def add_records(records)
-      records_added = Array.new
-      return records_added if records.empty? 
+      return [] if records.empty? 
 
       to_stage = Hash.new do |hash,staged_model|
         hash[staged_model] = Hash.new do |identities, identity_name|
@@ -469,7 +468,7 @@ module Praxis::Mapper
 
       end
 
-      records_added = records.collect do |record|
+      im_records = records.collect do |record|
         add_record(record)
       end
 
@@ -477,7 +476,7 @@ module Praxis::Mapper
         stage(model_to_stage, data)
       end
 
-      records_added
+      im_records
     end
 
 
