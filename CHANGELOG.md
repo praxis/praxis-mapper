@@ -2,18 +2,20 @@
 
 ## next
 
+## 3.4.0
+
+* Add preliminary Sequel-centric `Query::Sequel` class that exposes a a Sequel dataset with an interface compatible with other `Query` types.
+* Removed `member_name` and `collection_name` methods from `Resource`, as well as the `type` alias.
 * Fixed `IdentityMap#load` to return the records from the identity map corresponding to rows returned from the database. This fixes a bug where loading rows already existing in the identity map would return new record objects rather than the objects in the map.
-* Added `Model#_data` accessor for raw record contents. 
 
 ## 3.3.0
 
 * Tightened up handling of missing records in `IdentityMap#all` and `Resource.wrap`. They now will never return `nil` values.
-* Add preliminary Sequel-centric `Query::Sequel` class that exposes a a Sequel dataset with an interface compatible with other `Query` types.
-* Removed `member_name` and `collection_name` methods from `Resource`, as well as the `type` alias.
+
 
 ## 3.2.0
 
-* Add `Resource.decorate` for extending/overriding methods on Resource associations. See `PersonResource` in [spec_resources.rb](spec/support/spec_resources.rb) for usage. 
+* Add `Resource.decorate` for extending/overriding methods on Resource associations. See `PersonResource` in [spec_resources.rb](spec/support/spec_resources.rb) for usage.
 
 ## 3.1.2
 
@@ -22,7 +24,7 @@
 
 ## 3.1
 
-* Begin migration to Sequel for `Query::Sql`. 
+* Begin migration to Sequel for `Query::Sql`.
   * `#_execute` uses it for a database-agnostic adapter for running raw SQL.
   * `#_multi_get` uses it generate a datbase-agnostic where clause
 * Added accessor generation for `one_to_many` associations in resources.
@@ -33,7 +35,7 @@
 * Added `Model#identities` to get a hash of identities and values for a record.
 * Auto-generated attribute accessors on `Blueprint` do not load (coerce) the value using the attribute. Ensure values passed in already have the appropriate types. Blueprint attributes will still be wrapped properly, however.
 * Performance and memory use optimizations.
-* `IdentityMap#load` now supports eagerly-loading associated records in a query, and supports the full set of options on the inner query, including 
+* `IdentityMap#load` now supports eagerly-loading associated records in a query, and supports the full set of options on the inner query, including
 * Tracked `:one_to_many` associations now support where clauses. Using `where` clauses when tracking other association types is not supported and will raise an exception.
 
 
