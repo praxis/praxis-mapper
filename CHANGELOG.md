@@ -2,6 +2,8 @@
 
 ## next
 
+* Optimization on handling repeated ids (especially noticeable when using subloads)
+
 ## 3.4.0
 
 * Add preliminary Sequel-centric `Query::Sequel` class that exposes a a Sequel dataset with an interface compatible with other `Query` types.

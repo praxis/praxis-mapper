@@ -381,14 +381,14 @@ module Praxis::Mapper
     end
 
     def extract_keys(field, records)
-      row_keys = []
+      row_keys = Set.new
       if field.kind_of?(Array) # composite identities
         records.each do |record|
           row_key = field.collect { |col| record.send(col) }
           row_keys << row_key unless row_key.include?(nil)
         end
       else
-        row_keys.push *records.collect(&field).compact
+        row_keys.merge records.collect(&field).compact
       end
       row_keys
     end
@@ -418,9 +418,9 @@ module Praxis::Mapper
       key = tracked_association[:key]
       primary_key = tracked_association[:primary_key] || :id
 
-      row_keys = []
+      row_keys = Set.new
       records.collect(&key).each do |keys|
-        row_keys.push *keys
+        row_keys.merge keys
       end
 
       row_keys.reject! do |row_key|
@@ -438,7 +438,7 @@ module Praxis::Mapper
 
 
     def add_records(records)
-      return [] if records.empty? 
+      return [] if records.empty?
 
       to_stage = Hash.new do |hash,staged_model|
         hash[staged_model] = Hash.new do |identities, identity_name|
