@@ -69,6 +69,11 @@ module Praxis::Mapper
       @connection_manager = ConnectionManager.new
       @scope = scope
       clear!
+
+      # Ensure we clean up open connections 
+      ObjectSpace.define_finalizer(self) do
+        @connection_manager.release
+      end
     end
 
     def clear!
@@ -184,7 +189,11 @@ module Praxis::Mapper
         finalize_model!(model).any?
       end
 
-      finalize! if did_something
+      if did_something
+        finalize!
+      else
+        @connection_manager.release
+      end
     end
 
 
@@ -374,7 +383,6 @@ module Praxis::Mapper
         get_staged(model,key).merge(values)
       end
     end
-
 
     def connection(name)
       @connection_manager.checkout(name)
