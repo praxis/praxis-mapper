@@ -19,6 +19,14 @@ describe Praxis::Mapper::ConnectionFactories::Sequel do
       database.pool.allocated.should have_key(thread)
     end
 
+    it 'does not acquire a new connection if the thread already has one' do
+      connection = double('connection')
+      database.pool.allocated[thread] = connection
+
+      factory.checkout(connection_manager)
+      database.pool.allocated[thread].should be connection
+    end
+
   end
 
   context 'release' do
@@ -38,7 +46,9 @@ describe Praxis::Mapper::ConnectionFactories::Sequel do
       factory.checkout(connection_manager)
     end
 
-    it 'works somehow' do
+    it 'acquires a connection in a separate thread' do
+      database.pool.allocated.should have_key(thread)
+
       thread_2 = Thread.new do
         connection_manager_2 = Praxis::Mapper::ConnectionManager.new
         database.pool.allocated.should_not have_key(Thread.current)
@@ -46,6 +56,7 @@ describe Praxis::Mapper::ConnectionFactories::Sequel do
 
         factory.checkout(connection_manager_2)
         database.pool.allocated.should have_key(Thread.current)
+        database.pool.allocated.should have_key(thread)
       end
 
       thread_2.join

@@ -12,6 +12,7 @@ module Praxis::Mapper
           @connection = ::Sequel.connect(**opts)
         end
 
+        # steal timeout values so we can replicate the same timeout behavior
         @timeout = @connection.pool.instance_variable_get(:@timeout)
         @sleep_time = @connection.pool.instance_variable_get(:@sleep_time)
 
@@ -20,6 +21,8 @@ module Praxis::Mapper
       end
 
       def checkout(connection_manager)
+        # copied from Sequel's ThreadedConnectionPool#hold
+        # to ensure consistent behavior
         unless acquire(connection_manager.thread)
           time = Time.now
           timeout = time + @timeout
@@ -35,6 +38,9 @@ module Praxis::Mapper
       end
 
       def release(connection_manager, connection)
+        # ensure we only release connections we own, in case
+        # we've acquired a connection from Sequel that 
+        # is likely still in use.
         if (@owned_connections.delete(connection_manager.thread))
           @connection.pool.send(:sync) do
             @connection.pool.send(:release,connection_manager.thread)
@@ -43,6 +49,9 @@ module Praxis::Mapper
       end
 
       def acquire(thread)
+        # check connection's pool to see if it already has a connection
+        # if so, re-use it. otherwise, acquire a new one and mark that we 
+        # "own" it for future releasing.
         if (owned = @connection.pool.send(:owned_connection, thread))
           return true
         else
