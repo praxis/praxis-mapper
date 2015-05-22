@@ -1,61 +1,39 @@
 module Praxis::Mapper
   class ConnectionManager
 
-    # Configures a data store.
-    def self.setup(config_data={}, &block)
-      config_data.each do |repository_name, data|
-        klass_name = data.delete(:connection_factory)
-        connection_factory_class = Object.const_get(klass_name)
-        repositories[repository_name][:connection_factory] = connection_factory_class.new(data[:connection_opts])
+    @repositories = {}
+    class << self
+      attr_accessor :repositories
+    end
 
-        if (query_klass_name = data.delete(:query))
-          query_klass = Object.const_get(query_klass_name)
-          repositories[repository_name][:query] = query_klass
-        end
-      end
+    def self.setup(&block)
       if block_given?
         self.instance_eval(&block)
       end
     end
 
-    def self.repository(repository_name, data=nil,&block)
-      return repositories[repository_name] if data.nil? && !block_given?
+    def self.repository(repository_name, **data, &block)
+      return repositories[repository_name] if data.empty? && !block_given?
 
-      if data && data[:query]
-        query_klass = case data[:query]
-        when String
-          query_klass_name = data[:query]
-          Object.const_get(query_klass_name) #FIXME: won't really work consistently
-        when Class
-          data[:query]
-        when Symbol
-          raise "symbol support is not implemented yet"
-        else
-          raise "unknown type for query: #{data[:query].inspect} has type #{data[:query].class}"
-        end
-        repositories[repository_name][:query] = query_klass
+      query = data[:query] || Praxis::Mapper::Query::Sql
+      factory_class = data[:factory] || ConnectionFactories::Simple
+      
+      opts = data[:opts] || {}
+      if query.kind_of? String
+        query = query.constantize
+      end
+
+      if factory_class.kind_of? String
+        factory_class = factory_class.constantize
       end
       
-      if block_given?
-        # TODO: ? complain if data.has_key?(:connection_factory)
-        repositories[repository_name][:connection_factory] = block
-      elsif data
-        klass_name = data.delete(:connection_factory)
-        connection_factory_class = Object.const_get(klass_name) #FIXME: won't really work consistently
-        repositories[repository_name][:connection_factory] = connection_factory_class.new(data[:connection_opts])
-      end
+      repositories[repository_name] = {
+        query: query,
+        factory: factory_class.new(**opts, &block)
+      }
     end
 
-
-    def self.repositories
-      @repositories ||= Hash.new do |hash,key|
-        hash[key] = {
-          :connection_factory => nil,
-          :query => Praxis::Mapper::Query::Sql
-        }
-      end
-    end
-
+    
     def repositories
       self.class.repositories
     end
@@ -66,26 +44,27 @@ module Praxis::Mapper
 
     def initialize
       @connections = {}
+      @thread = Thread.current
+    end
+
+    def thread
+      return @thread if @thread == Thread.current
+      raise 'threading violation in ConnectionManager. Calling Thread is different from Thread that owns this instance.'
     end
 
     def checkout(name)
       connection = @connections[name]
       return connection if connection
 
-      factory = repositories[name][:connection_factory]
-      connection = if factory.kind_of?(Proc)
-        factory.call
-      else
-        factory.checkout
-      end
+      factory = repositories[name][:factory]
+      connection = factory.checkout(self)
 
       @connections[name] = connection
     end
 
     def release_one(name)
       if (connection = @connections.delete(name))
-        return true if repositories[name][:connection_factory].kind_of? Proc
-        repositories[name][:connection_factory].release(connection)
+        repositories[name][:factory].release(self, connection)
       end
     end
 

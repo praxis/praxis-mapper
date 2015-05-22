@@ -49,7 +49,11 @@ require 'praxis-mapper/identity_map'
 
 require 'praxis-mapper/model'
 require 'praxis-mapper/query_statistics'
+
 require 'praxis-mapper/connection_manager'
+
+require 'praxis-mapper/connection_factories/simple'
+require 'praxis-mapper/connection_factories/sequel'
 
 require 'praxis-mapper/resource'
 

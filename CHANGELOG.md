@@ -3,6 +3,12 @@
 ## next
 
 * Optimization on handling repeated ids (especially noticeable when using subloads)
+* Refactored `ConnectionManager` repository handling to improve integration with other connection-pooling (specifically Sequel's at present).
+* Added two types of connection factory under `Praxis::Mapper::ConnectionFactories::`:
+  * `Simple`: Takes a `connection:` option to specify the raw object to return for all `checkout`. Also, preserves current behavior with proc-based uses when `ConnectionManager.repository` is given a block. This is the default factory type if one is not specified for the repository.
+  * `Sequel`: Takes `connection:` option to specify a `Sequel::Database`, or hash of options to pass to `Sequel.connect`. 
+* `IdentityMap#finalize!` now calls `ConnectionManager#release` to ensure any connections are returned to their respective pools, if applicable.
+
 
 ## 3.4.0
 
