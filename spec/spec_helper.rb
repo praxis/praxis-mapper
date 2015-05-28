@@ -22,6 +22,8 @@ Bundler.setup
 require 'praxis-mapper'
 require 'active_support/core_ext/kernel'
 
+
+require_relative 'support/spec_sequel_models'
 require_relative 'support/spec_models'
 require_relative 'support/spec_resources'
 require_relative 'spec_fixtures'
@@ -31,6 +33,7 @@ require 'praxis-mapper/support'
 require 'randexp'
 
 require 'pry'
+
 
 RSpec.configure do |config|
   config.backtrace_exclusion_patterns = [

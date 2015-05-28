@@ -45,10 +45,13 @@ end
 require 'praxis-mapper/finalizable'
 require 'praxis-mapper/logging'
 
+require 'praxis-mapper/identity_map_extensions/persistence'
 require 'praxis-mapper/identity_map'
 
 require 'praxis-mapper/model'
 require 'praxis-mapper/query_statistics'
+
+require 'praxis-mapper/sequel_compat' 
 
 require 'praxis-mapper/connection_manager'
 
