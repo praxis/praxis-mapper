@@ -92,6 +92,17 @@ module Praxis::Mapper
         end
       end
 
+      def to_records(rows)
+        if model < ::Sequel::Model
+          rows.collect do |row|
+            m = model.call(row)
+            m._query = self
+            m
+          end
+        else
+          super
+        end
+      end
 
     end
 

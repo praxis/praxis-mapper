@@ -192,7 +192,7 @@ module Praxis::Mapper
       end
 
       def to_records(rows)
-         rows.collect do |row|
+        rows.collect do |row|
           m = model.new(row)
           m._query = self
           m

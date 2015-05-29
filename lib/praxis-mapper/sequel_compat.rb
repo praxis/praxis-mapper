@@ -11,12 +11,14 @@ module Praxis::Mapper
       attr_accessor :_resource
       attr_accessor :_query
       attr_accessor :identity_map
+
+      @repository_name = :default
     end
 
     module ClassMethods
 
       def identities
-        Array(primary_key)
+        [primary_key]
       end
 
       def finalized?
@@ -33,7 +35,9 @@ module Praxis::Mapper
       end
 
       def repository_name(name=nil)
-        :default
+        return @repository_name if name.nil?
+
+        @repository_name = name
       end
 
     end

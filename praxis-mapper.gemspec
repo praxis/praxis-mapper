@@ -34,5 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency(%q<pry-byebug>, ["~> 1"])
   spec.add_development_dependency(%q<pry-stack_explorer>, ["~> 0"])
   spec.add_development_dependency(%q<fuubar>, ["~> 1"])
-  spec.add_development_dependency(%q<sqlite3>)
+  spec.add_development_dependency('sqlite3')
+  spec.add_development_dependency('factory_girl')
 end

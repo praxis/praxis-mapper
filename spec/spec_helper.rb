@@ -14,10 +14,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 
 
-Bundler.setup
-
-#Bundler.require(:default, :development, :test)
-
 
 require 'praxis-mapper'
 require 'active_support/core_ext/kernel'
@@ -31,6 +27,7 @@ require_relative 'spec_fixtures'
 require 'praxis-mapper/support'
 
 require 'randexp'
+require 'factory_girl'
 
 require 'pry'
 
@@ -45,7 +42,15 @@ RSpec.configure do |config|
     /org\/jruby\/.*.java/
   ]
 
+  config.include FactoryGirl::Syntax::Methods
+  
   config.before(:suite) do
+    FactoryGirl.find_definitions
+    Sequel::Model.db.transaction do
+      FactoryGirl.lint
+      raise Sequel::Rollback
+    end
+
     Praxis::Mapper.finalize!
 
     Praxis::Mapper::ConnectionManager.repository(:default, query: Praxis::Mapper::Support::MemoryQuery) do
@@ -61,6 +66,13 @@ RSpec.configure do |config|
 
   config.after(:each) do
     Praxis::Mapper::IdentityMap.current.clear!
+  end
+
+  config.around(:each) do |example|
+    Sequel::Model.db.transaction do
+      example.run
+      raise Sequel::Rollback
+    end
   end
 
 end
