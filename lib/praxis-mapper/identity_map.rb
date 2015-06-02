@@ -4,7 +4,8 @@
 # The scope can be thought of as a set of named filters.
 module Praxis::Mapper
   class IdentityMap
-
+    include IdentityMapExtensions::Persistence
+    
     class UnloadedRecordException < StandardError; end;
     class UnsupportedModel < StandardError; end;
     class UnknownIdentity < StandardError; end;
@@ -70,7 +71,7 @@ module Praxis::Mapper
       @scope = scope
       clear!
 
-      # Ensure we clean up open connections 
+      # Ensure we clean up open connections
       ObjectSpace.define_finalizer(self) do
         @connection_manager.release
       end
@@ -109,7 +110,9 @@ module Praxis::Mapper
       end
 
       # TODO: rework this so it's a hash with default values and simplify #index
-      @secondary_indexes =  Hash.new
+      @secondary_indexes = Hash.new do |hash, model|
+        hash[model] = Hash.new
+      end
     end
 
 
@@ -192,10 +195,13 @@ module Praxis::Mapper
       if did_something
         finalize!
       else
-        @connection_manager.release
+        release
       end
     end
 
+    def release
+      @connection_manager.release
+    end
 
     # don't doc. never ever use yourself!
     # FIXME: make private and fix specs that break?
@@ -302,8 +308,6 @@ module Praxis::Mapper
 
 
     def index(model, key, value)
-      @secondary_indexes[model] ||= Hash.new
-
       unless @secondary_indexes[model].has_key? key
         @secondary_indexes[model][key] ||= Hash.new
         reindex!(model, key)
@@ -320,6 +324,7 @@ module Praxis::Mapper
         else
           row.send(key)
         end
+        # FIXME: make this a set? or handle duplicates better
         index(model, key, val) << row
       end
     end
@@ -334,7 +339,8 @@ module Praxis::Mapper
       if values.size == 1
         value = values[0]
         if @row_keys[model].has_key?(key)
-          res = row_by_key(model, key, value)
+          res = @row_keys[model][key][value]
+          
           if res
             [res]
           else
@@ -346,7 +352,7 @@ module Praxis::Mapper
       else
         if @row_keys[model].has_key?(key)
           values.collect do |value|
-            row_by_key(model, key, value)
+            @row_keys[model][key][value]
           end.compact
         else
           values.each_with_object(Array.new) do |value, results|
@@ -503,6 +509,16 @@ module Praxis::Mapper
 
         get_staged(model, identity).delete(key)
         @row_keys[model][identity][key] = record
+      end
+
+      @secondary_indexes[model].each do |key, indexed_values|
+        val = if key.kind_of? Array
+          key.collect { |k| record.send(k) }
+        else
+          record.send(key)
+        end
+
+        indexed_values[val] << record
       end
 
       record.identity_map = self
