@@ -8,6 +8,17 @@
   * `Simple`: Takes a `connection:` option to specify the raw object to return for all `checkout`. Also, preserves current behavior with proc-based uses when `ConnectionManager.repository` is given a block. This is the default factory type if one is not specified for the repository.
   * `Sequel`: Takes `connection:` option to specify a `Sequel::Database`, or hash of options to pass to `Sequel.connect`. 
 * `IdentityMap#finalize!` now calls `ConnectionManager#release` to ensure any connections are returned to their respective pools, if applicable.
+* Added `SequelCompat` module, which provides support for using `Sequel::Model` objects with an `IdentityMap` when included in model class. 
+  * This overrides the association accessors on instances associated with an `IdentityMap` (see below for more on this) to query the map instead of database.
+  * See (spec/support/spec_sequel_models.rb) for example definition.
+* Added prototype for write-path support to `IdentityMap` (for `Sequel::Model` models):
+  * `IdentityMap#attach(record)`: adds the record to the identity map, saving it to the database first if it does not have a value for its primary key (or other identities).
+  * `IdentityMap#detatch(record)`: removes the record from the identity map
+  * `IdentityMap#flush!(record_or_class=nil)`: depending on the value of `record_or_class` it:
+    * with no argument, or nil, given it saves all modified records in the identity map.
+    * with an instance of a model, it saves just that record.
+    * with a model class, it saves all modified records for that class in the identity map.
+  * `IdentityMap#remove`: calls `detatch` with the record, and then calls`record.delete` to delete it. 
 
 
 ## 3.4.0
