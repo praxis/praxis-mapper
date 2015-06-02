@@ -43,7 +43,6 @@ module Praxis::Mapper
     end
 
 
-    # FIXME: this must support
     def _load_associated_objects(opts, dynamic_opts=OPTS)
       return super if self.identity_map.nil?
 

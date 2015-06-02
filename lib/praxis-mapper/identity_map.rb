@@ -195,10 +195,13 @@ module Praxis::Mapper
       if did_something
         finalize!
       else
-        @connection_manager.release
+        release
       end
     end
 
+    def release
+      @connection_manager.release
+    end
 
     # don't doc. never ever use yourself!
     # FIXME: make private and fix specs that break?
