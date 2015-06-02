@@ -18,4 +18,15 @@ FactoryGirl.define do
     post
   end
 
+  factory :composite, class: CompositeIdSequelModel do
+    id { /\w+/.gen }
+    type { /\w+/.gen }
+
+    name  { /\w+/.gen }
+  end
+
+  factory :other, class: OtherSequelModel do
+    composite
+  end
+
 end

@@ -5,9 +5,6 @@ module Praxis::Mapper
     extend ActiveSupport::Concern
 
     included do
-      unrestrict_primary_key
-      plugin :dirty
-
       attr_accessor :_resource
       attr_accessor :_query
       attr_accessor :identity_map
@@ -30,6 +27,7 @@ module Praxis::Mapper
 
         orig.each do |k,v|
           v[:model] = v.associated_class
+          v[:primary_key] = v.primary_key
         end
         orig
       end
@@ -45,13 +43,16 @@ module Praxis::Mapper
 
     def _load_associated_objects(opts, dynamic_opts=OPTS)
       return super if self.identity_map.nil?
-
       target = opts.associated_class
       key = opts[:key]
 
       case opts[:type]
       when :many_to_one
-        val = @values[key]
+        val = if key.kind_of?(Array)
+          @values.values_at(*key)
+        else
+          @values[key]
+        end
         return nil if val.nil?
         self.identity_map.get(target, target.primary_key => val)
       when :one_to_many

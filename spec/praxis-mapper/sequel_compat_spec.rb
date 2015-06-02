@@ -54,8 +54,53 @@ describe Praxis::Mapper::SequelCompat do
       end
     end
 
+    context 'that have composite keys' do
+      let!(:composite_record) { create(:composite) }
+      let!(:other_records) { create_list(:other, 5, composite: composite_record) }
+
+      context 'tracking a one_to_many association' do
+        before do
+          identity_map.load(CompositeIdSequelModel) do
+            track :others
+          end
+          identity_map.finalize!
+        end
+
+        let(:loaded_composite) do
+          identity_map.get(
+            CompositeIdSequelModel,
+            [:id, :type] => [composite_record.id, composite_record.type])
+        end
 
 
+
+        it 'loads and handles associations properly' do
+          identity_map.all(OtherSequelModel).should =~ other_records
+          loaded_composite.others.should =~ other_records
+        end
+
+      end
+
+      context 'tracking a many_to_one association' do
+        before do
+          identity_map.load(OtherSequelModel) do
+            track :composite
+          end
+          identity_map.finalize!
+        end
+
+        let(:loaded_others) { identity_map.all(OtherSequelModel) }
+        
+        it 'loads and handles associations properly' do
+          identity_map.all(CompositeIdSequelModel).should =~ [composite_record]
+          loaded_others.all? do |loaded_other|
+            loaded_other.composite == composite_record
+          end.should be true
+        end
+
+      end
+
+    end
 
   end
 end
