@@ -27,7 +27,15 @@ module Praxis::Mapper
 
         orig.each do |k,v|
           v[:model] = v.associated_class
-          v[:primary_key] = v.primary_key
+          if v.respond_to?(:primary_key)
+            v[:primary_key] = v.primary_key
+          else
+            # FIXME: figure out exactly what to do here. 
+            # not super critical, as we can't track these associations
+            # directly, but it would be nice to traverse these
+            # properly.
+            v[:primary_key] = :unsupported
+          end
         end
         orig
       end
