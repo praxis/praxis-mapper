@@ -1,6 +1,6 @@
 # praxis-mapper changelog
 
-## next
+## 4.0
 
 * Optimization on handling repeated ids (especially noticeable when using subloads)
 * Refactored `ConnectionManager` repository handling to improve integration with other connection-pooling (specifically Sequel's at present).
