@@ -127,16 +127,18 @@ module Praxis::Mapper
         return finalize_model!(model, query)
       end
 
-      records = query.execute
-      im_records = add_records(records)
+      ActiveSupport::Notifications.instrument 'praxis.mapper.load', model: model do
+        records = query.execute
+        im_records = add_records(records)
 
-      # TODO: refactor this to better-hide queries?
-      query.freeze
-      self.queries[model].add(query)
+        # TODO: refactor this to better-hide queries?
+        query.freeze
+        queries[model].add(query)
 
-      subload(model, query,records)
+        subload(model, query, records)
 
-      im_records
+        im_records
+      end
     end
 
     def stage_for!(spec, records)
@@ -183,17 +185,25 @@ module Praxis::Mapper
       end
     end
 
-    def finalize!(*models)
-      if models.empty?
-        models = @staged.keys
+    def finalize!(*models, instrument: true)
+      if instrument
+        ActiveSupport::Notifications.instrument 'praxis.mapper.finalize' do
+          _finalize!(*models)
+        end
+      else
+        _finalize!(*models)
       end
+    end
+
+    def _finalize!(*models)
+      models = @staged.keys if models.empty?
 
       did_something = models.any? do |model|
         finalize_model!(model).any?
       end
 
       if did_something
-        finalize!
+        _finalize!
       else
         release
       end
@@ -205,19 +215,18 @@ module Praxis::Mapper
 
     # don't doc. never ever use yourself!
     # FIXME: make private and fix specs that break?
-    def finalize_model!(model, query=nil)
+    def finalize_model!(model, query = nil)
       staged_queries = @staged[model].delete(:_queries) || []
       staged_keys = @staged[model].keys
-      identities = staged_keys && model.identities
       non_identities = staged_keys - model.identities
 
       results = Set.new
 
-      return results if @staged[model].all? { |(key,values)| values.empty? }
+      return results if @staged[model].all? { |(_key, values)| values.empty? }
 
       if query.nil?
         query_class = @connection_manager.repository(model.repository_name)[:query]
-        query = query_class.new(self,model)
+        query = query_class.new(self, model)
       end
 
       # Apply any relevant blocks passed to track in the original queries
