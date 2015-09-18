@@ -104,6 +104,9 @@ describe Praxis::Mapper::IdentityMap do
       it 'builds a query, executes, freezes it, and returns the query results' do
         Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:execute).and_return(records)
         Praxis::Mapper::Support::MemoryQuery.any_instance.should_receive(:freeze)
+        ActiveSupport::Notifications.should_receive(:instrument).
+          with('praxis.mapper.load', {model: model}).
+          and_call_original
         identity_map.load(model, &query_proc).should === records
       end
 
@@ -141,7 +144,7 @@ describe Praxis::Mapper::IdentityMap do
         identity_map.should_receive(:finalize_model!) do |model, query|
           model.should be(AddressModel)
           query.where.should be(nil)
-          query.track.should eq(Set.new([:foobar])) 
+          query.track.should eq(Set.new([:foobar]))
         end
       end
     end
@@ -283,7 +286,25 @@ describe Praxis::Mapper::IdentityMap do
     end
   end
 
+  context '#finalize!' do
+    let(:stage) { {:id => [1,2] } }
+    before do
+      identity_map.stage(PersonModel, stage)
+    end
 
+    it 'sends the correct ActiveSupport::Notification' do
+      ActiveSupport::Notifications.should_receive(:instrument).
+        with('praxis.mapper.finalize').
+        and_call_original
+      identity_map.finalize!
+    end
+
+    it 'does not send ActiveSupport::Notification if instrument: false is passed' do
+      ActiveSupport::Notifications.should_not_receive(:instrument)
+      identity_map.finalize!(instrument: false)
+    end
+
+  end
 
   context "#finalize_model!" do
     let(:record_query) { nil }
