@@ -1,14 +1,22 @@
 # praxis-mapper changelog
 
+## next
+
+## 4.1
+
+* Added instrumentation through `ActiveSupport::Notifications`
+  * Use the 'praxis.mapper.load' to subscribe to `IdentityMap.load` calls
+  * Use the 'praxis.mapper.finalize' to subscribe to `IdentityMap.finalize!` calls
+
 ## 4.0
 
 * Optimization on handling repeated ids (especially noticeable when using subloads)
 * Refactored `ConnectionManager` repository handling to improve integration with other connection-pooling (specifically Sequel's at present).
 * Added two types of connection factory under `Praxis::Mapper::ConnectionFactories::`:
   * `Simple`: Takes a `connection:` option to specify the raw object to return for all `checkout`. Also, preserves current behavior with proc-based uses when `ConnectionManager.repository` is given a block. This is the default factory type if one is not specified for the repository.
-  * `Sequel`: Takes `connection:` option to specify a `Sequel::Database`, or hash of options to pass to `Sequel.connect`. 
+  * `Sequel`: Takes `connection:` option to specify a `Sequel::Database`, or hash of options to pass to `Sequel.connect`.
 * `IdentityMap#finalize!` now calls `ConnectionManager#release` to ensure any connections are returned to their respective pools, if applicable.
-* Added `SequelCompat` module, which provides support for using `Sequel::Model` objects with an `IdentityMap` when included in model class. 
+* Added `SequelCompat` module, which provides support for using `Sequel::Model` objects with an `IdentityMap` when included in model class.
   * This overrides the association accessors on instances associated with an `IdentityMap` (see below for more on this) to query the map instead of database.
   * See (spec/support/spec_sequel_models.rb) for example definition.
 * Added prototype for write-path support to `IdentityMap` (for `Sequel::Model` models):
@@ -18,7 +26,7 @@
     * with no argument, or nil, given it saves all modified records in the identity map.
     * with an instance of a model, it saves just that record.
     * with a model class, it saves all modified records for that class in the identity map.
-  * `IdentityMap#remove`: calls `detatch` with the record, and then calls`record.delete` to delete it. 
+  * `IdentityMap#remove`: calls `detatch` with the record, and then calls`record.delete` to delete it.
 
 
 ## 3.4.0
