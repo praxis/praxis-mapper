@@ -304,6 +304,24 @@ describe Praxis::Mapper::IdentityMap do
       identity_map.finalize!(instrument: false)
     end
 
+    context 'plays well with Sequel models' do
+      # The reason to test agains Sequel models is that the destructuring of args
+      # for the _finalize! call caused unexpecting "loads" due to invoking .to_hash on them, see function for details
+      it 'calls the _finalize! with just the one model passed' do
+        identity_map.should_receive(:_finalize!).with(UserModel)
+         identity_map.finalize!(UserModel)
+      end
+
+      it 'calls the _finalize! with just the models passed' do
+        identity_map.should_receive(:_finalize!).with(UserModel,PostModel)
+         identity_map.finalize!(UserModel,PostModel)
+      end
+
+      it 'calls the _finalize! discarding instrument opts' do
+        identity_map.should_receive(:_finalize!).with(UserModel)
+        identity_map.finalize!(UserModel, instrument: false)
+      end
+    end
   end
 
   context "#finalize_model!" do
