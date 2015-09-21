@@ -2,6 +2,11 @@
 
 ## next
 
+## 4.1.1
+
+* Fixed critical bug in `IdentityMap#finalize!`=
+
+
 ## 4.1
 
 * Added instrumentation through `ActiveSupport::Notifications`
