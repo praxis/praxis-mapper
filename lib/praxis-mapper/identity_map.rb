@@ -5,7 +5,7 @@
 module Praxis::Mapper
   class IdentityMap
     include IdentityMapExtensions::Persistence
-    
+
     class UnloadedRecordException < StandardError; end;
     class UnsupportedModel < StandardError; end;
     class UnknownIdentity < StandardError; end;
@@ -185,7 +185,20 @@ module Praxis::Mapper
       end
     end
 
-    def finalize!(*models, instrument: true)
+    # Last parameter in array can be a hash of objects
+    # It is implemented this way (instead of (*models, instrument: true)) because when passing in
+    # Sequel models, ruby will invoke the ".to_hash" on them, causing a "load" when trying to restructure the args
+    def finalize!(*models_and_opts)
+
+      models, instrument = if models_and_opts.last.kind_of?(::Hash)
+        ins = models_and_opts.last.fetch(:instrument) do
+          true
+        end
+        [ models_and_opts[0..-2], ins ]
+      else
+        [ models_and_opts, true ]
+      end
+
       if instrument
         ActiveSupport::Notifications.instrument 'praxis.mapper.finalize' do
           _finalize!(*models)
@@ -349,7 +362,7 @@ module Praxis::Mapper
         value = values[0]
         if @row_keys[model].has_key?(key)
           res = @row_keys[model][key][value]
-          
+
           if res
             [res]
           else
