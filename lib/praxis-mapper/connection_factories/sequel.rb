@@ -39,7 +39,7 @@ module Praxis::Mapper
 
       def release(connection_manager, connection)
         # ensure we only release connections we own, in case
-        # we've acquired a connection from Sequel that 
+        # we've acquired a connection from Sequel that
         # is likely still in use.
         if (@owned_connections.delete(connection_manager.thread))
           @connection.pool.send(:sync) do
@@ -50,9 +50,9 @@ module Praxis::Mapper
 
       def acquire(thread)
         # check connection's pool to see if it already has a connection
-        # if so, re-use it. otherwise, acquire a new one and mark that we 
+        # if so, re-use it. otherwise, acquire a new one and mark that we
         # "own" it for future releasing.
-        if (owned = @connection.pool.send(:owned_connection, thread))
+        if @connection.pool.send(:owned_connection, thread)
           return true
         else
           conn = @connection.pool.send(:acquire, thread)

@@ -17,7 +17,7 @@ module Praxis::Mapper
 
       query = data[:query] || Praxis::Mapper::Query::Sql
       factory_class = data[:factory] || ConnectionFactories::Simple
-      
+
       opts = data[:opts] || {}
       if query.kind_of? String
         query = query.constantize
@@ -26,14 +26,14 @@ module Praxis::Mapper
       if factory_class.kind_of? String
         factory_class = factory_class.constantize
       end
-      
+
       repositories[repository_name] = {
         query: query,
         factory: factory_class.new(**opts, &block)
       }
     end
 
-    
+
     def repositories
       self.class.repositories
     end
@@ -73,7 +73,7 @@ module Praxis::Mapper
         release_one(name)
       else
         names = @connections.keys
-        names.each { |name| release_one(name) }
+        names.each { |n| release_one(n) }
       end
     end
 
