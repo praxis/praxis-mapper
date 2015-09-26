@@ -2,6 +2,8 @@
 
 ## next
 
+## 4.1.2
+
 * Remove finalizer from IdentityMap to fix memory leak that was preventing them from being GC'd properly.
 
 
