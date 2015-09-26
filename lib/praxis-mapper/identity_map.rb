@@ -70,11 +70,6 @@ module Praxis::Mapper
       @connection_manager = ConnectionManager.new
       @scope = scope
       clear!
-
-      # Ensure we clean up open connections
-      ObjectSpace.define_finalizer(self) do
-        @connection_manager.release
-      end
     end
 
     def clear!
