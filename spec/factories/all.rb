@@ -2,8 +2,14 @@ FactoryGirl.define do
 
   to_create { |i| i.save }
 
-  factory :user, class: UserModel, aliases: [:author] do
-    name { /[:name:]/.gen }
+  factory :blog, class: BlogModel do
+    name { /\w+/.gen }
+    owner
+  end
+
+  factory :user, class: UserModel, aliases: [:author, :owner] do
+    first_name { /[:first_name:]/.gen }
+    last_name { /[:last_name]/.gen }
     email { /[:email:]/.gen }
   end
 

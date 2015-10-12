@@ -15,7 +15,7 @@ module Praxis::Mapper
         ds = connection[model.table_name.to_sym]
 
         # TODO: support column aliases
-        if @select
+        if @select && @select != true
           ds = ds.select(*@select.keys)
         end
 

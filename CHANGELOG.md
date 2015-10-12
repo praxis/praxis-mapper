@@ -2,6 +2,37 @@
 
 ## next
 
+* Added `Resource.property` to specify the fields and associations from the
+  underlying model that are needed by methods added to the `Resource`.
+    * For example:
+      * `property :full_name, dependencies: [:first, :last]` specifies that the `full_name` method on the resource depends upon the values of the `first`
+      and `last` fields from the model.
+      * `property :owner_name, dependencies: ['owner.first', 'owner.last']`
+      defines a dependency on the `first` and `last` fields from the associated
+      `owner`.
+    * Dependencies must always be an array. Symbol values should be used for
+    fields or associations from the same resource, and strings can be used
+    for fields from associated resources.
+    * `:*` or `'association.*'` may be used to specify a
+    dependency on all of the fields of the resource (analagous to 'SELECT *').
+    * Additionally, property dependencies may specify other properties on the
+    same or related resources.
+* Added `IdentityMap#add_selectors(resource, field_selector)` to define fields to
+  `select` and associations to `track` given `resource` and `field_selectors`.
+    * For example:
+      * `identity_map#add_selectors(PersonResource, full_name: true)` would
+      ensure any loads done for the model the `PersonResource` describes will
+      select any fields required by the `full_name` property (`first` and `last`
+      in the example above).
+      * `identity_map#add_selectors(PersonResource, id: true, address: true)`
+      could result in selecting the `id` and `address_id` fields of `PersonModel`,
+      as well as tracking the `address` association, for any queries involving
+      `PersonModel`.
+* Added the ability to explicitly perform a "SELECT *" by specifying `select :*`
+  or `select '*'` in a query.
+
+
+
 ## 4.1.2
 
 * Remove finalizer from IdentityMap to fix memory leak that was preventing them from being GC'd properly.

@@ -91,6 +91,21 @@ describe Praxis::Mapper::Query::Sql do
 
   end
 
+  context 'selecting all fields' do
+    subject(:query) do
+      Praxis::Mapper::Query::Sql.new(identity_map, SimpleModel) do
+        select :id, :name
+        where "deployment_id=2"
+        track :parent
+      end
+    end
+
+    it 'generates proper select clause if select is true' do
+      query.select :*
+      query.select_clause.should eq 'SELECT *'
+    end
+
+  end
   context '#_multi_get' do
 
     let(:ids) { [1, 2, 3] }

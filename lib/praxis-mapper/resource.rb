@@ -29,9 +29,12 @@ module Praxis::Mapper
 
     attr_accessor :record
 
+    @properties = {}
+
     class << self
       attr_reader :model_map
       attr_reader :decorations
+      attr_reader :properties
     end
 
     # TODO: also support an attribute of sorts on the versioned resource module. ie, V1::Resources.api_version.
@@ -46,10 +49,11 @@ module Praxis::Mapper
         if self.superclass == Praxis::Mapper::Resource
           @model_map = Hash.new
         else
-          @model_map = self.superclass.model_map 
+          @model_map = self.superclass.model_map
         end
 
         @decorations = {}
+        @properties = self.superclass.properties.clone
       end
 
     end
@@ -67,6 +71,10 @@ module Praxis::Mapper
 
     def self.decorate(name, &block)
       self.decorations[name] = Class.new(ResourceDecorator, &block)
+    end
+
+    def self.property(name, **options)
+      self.properties[name] = options
     end
 
     def self._finalize!
@@ -108,10 +116,10 @@ module Praxis::Mapper
 
     def self.define_decorator(name, block)
       unless self.instance_methods.include?(name)
-        # assume it'll be a regular accessor and create it 
+        # assume it'll be a regular accessor and create it
         self.define_accessor(name)
       end
-      # alias original method and wrap it 
+      # alias original method and wrap it
       raw_name = "_raw_#{name}"
       alias_method(raw_name.to_sym, name)
 
@@ -137,17 +145,16 @@ module Praxis::Mapper
     end
 
 
-  def self.wrap(records)
-    case records
-    when nil
-      return []
-    when Enumerable
-      return records.compact.collect { |record| self.for_record(record) }
-    else
-      return self.for_record(records)
+    def self.wrap(records)
+      case records
+      when nil
+        return []
+      when Enumerable
+        return records.compact.collect { |record| self.for_record(record) }
+      else
+        return self.for_record(records)
+      end
     end
-  end
-
 
 
     def self.get(condition)

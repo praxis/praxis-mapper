@@ -19,9 +19,11 @@ require 'praxis-mapper'
 require 'active_support/core_ext/kernel'
 
 
-require_relative 'support/spec_sequel_models'
 require_relative 'support/spec_models'
+require_relative 'support/spec_sequel_models'
 require_relative 'support/spec_resources'
+require_relative 'support/spec_sequel_resources'
+
 require_relative 'spec_fixtures'
 
 require 'praxis-mapper/support'
@@ -43,7 +45,7 @@ RSpec.configure do |config|
   ]
 
   config.include FactoryGirl::Syntax::Methods
-  
+
   config.before(:suite) do
     FactoryGirl.find_definitions
     Sequel::Model.db.transaction do

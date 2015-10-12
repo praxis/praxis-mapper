@@ -4,10 +4,20 @@
 
 DB = Sequel.sqlite
 
-DB.create_table! :users do
+DB.create_table! :blogs do
   primary_key :id
+  Integer :owner_id
+  Integer :administrator_id
 
   String :name
+end
+
+DB.create_table! :users do
+  primary_key :id
+  Integer :main_blog_id
+
+  String :first_name
+  String :last_name
   String :email
 end
 
@@ -54,6 +64,13 @@ Praxis::Mapper::ConnectionManager.setup do
   end
 end
 
+class BlogModel < Sequel::Model(:blogs)
+  include Praxis::Mapper::SequelCompat
+  many_to_one :owner, class: 'UserModel', key: :owner_id
+  many_to_one :administrator, class: 'UserModel', key: :administrator_id
+
+end
+
 class UserModel < Sequel::Model(:users)
   include Praxis::Mapper::SequelCompat
 
@@ -61,9 +78,14 @@ class UserModel < Sequel::Model(:users)
 
   one_to_many :posts, class: 'PostModel'
   one_to_many :comments, class: 'CommentModel'
+  one_to_many :blogs, class: 'BlogModel', key: :owner_id
+
+  one_to_many :administered_blogs, class: 'BlogModel', key: :administrator_id
 
   many_to_many :commented_posts, class: 'PostModel',
     join_table: 'comments', join_model: 'CommentModel'
+
+  many_to_one :main_blog, class: 'BlogModel', key: :main_blog_id
 end
 
 class PostModel < Sequel::Model(:posts)
@@ -89,7 +111,7 @@ end
 
 class CompositeIdSequelModel < Sequel::Model(:composite_ids)
   include Praxis::Mapper::SequelCompat
-  
+
   repository_name :sequel
 
   set_primary_key [:id, :type]
@@ -101,9 +123,9 @@ end
 
 class OtherSequelModel < Sequel::Model(:others)
   include Praxis::Mapper::SequelCompat
-  
+
   repository_name :sequel
-  
+
   many_to_one :composite,
     class: 'CompositeIdSequelModel',
     key: [:composite_id, :composite_type]
