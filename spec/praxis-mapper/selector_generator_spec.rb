@@ -8,7 +8,7 @@ describe Praxis::Mapper::SelectorGenerator do
   before do
     generator.add(BlogResource,properties)
   end
-
+  it 'has specs for many_to_many associations'
   let(:expected_selectors) { {} }
 
   context 'for a simple field' do
@@ -146,6 +146,21 @@ describe Praxis::Mapper::SelectorGenerator do
       }
     end
     it 'generates selectors that ignore any unapplicable subrefinements' do
+      generator.selectors.should eq expected_selectors
+    end
+  end
+
+  context 'for a property with no dependencies' do
+    let(:properties) { {id: true, kind: true} }
+    let(:expected_selectors) do
+      {
+        BlogModel => {
+          select: Set.new([:id]),
+          track: Set.new()
+        }
+      }
+    end
+    it 'generates the correct set of selectors' do
       generator.selectors.should eq expected_selectors
     end
   end

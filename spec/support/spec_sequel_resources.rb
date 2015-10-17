@@ -4,8 +4,13 @@ class BlogResource < BaseResource
   property :owner_full_name, dependencies: ['owner.full_name']
   property :everything, dependencies: [:*]
   property :everything_from_owner, dependencies: ['owner.*']
+  property :kind, dependencies: nil
 
   model BlogModel
+
+  def kind
+    self.class.name.demodulize
+  end
 
   def display_name
     self.name

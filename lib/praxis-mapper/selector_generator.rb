@@ -47,14 +47,27 @@ module Praxis::Mapper
       end
       associated_resource = resource.model_map[association[:model]]
 
-      add_track(resource, name)
 
       # TODO: flesh out possible association types we should handle here
       case association[:type]
       when :many_to_one
+        add_track(resource, name)
         add_select(resource, association[:key])
       when :one_to_many
+        add_track(resource, name)
         add_select(associated_resource, association[:key])
+      when :many_to_many
+        head, *tail = association.fetch(:through) do
+          raise "Association #{name} on #{resource.model} must specify the " +
+            "':through' option. "
+        end
+
+        new_field = tail.reverse.inject(field) do |thing, step|
+          {step => thing}
+        end
+
+        return add_association(resource, head, new_field)
+
       else
         raise "no select applicable for #{association[:type].inspect}"
       end
@@ -67,6 +80,8 @@ module Praxis::Mapper
 
     def add_property(resource, name)
       dependencies = resource.properties[name][:dependencies]
+      return if dependencies.nil?
+
       dependencies.each do |dependency|
         apply_dependency(resource, dependency)
       end
