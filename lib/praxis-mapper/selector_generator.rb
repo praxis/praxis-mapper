@@ -41,14 +41,12 @@ module Praxis::Mapper
       selectors[resource.model][:track] << name
     end
 
-    def add_association(resource, name, field)
+    def add_association(resource, name, fields)
       association = resource.model.associations.fetch(name) do
         raise "missing association for #{resource} with name #{name}"
       end
       associated_resource = resource.model_map[association[:model]]
 
-
-      # TODO: flesh out possible association types we should handle here
       case association[:type]
       when :many_to_one
         add_track(resource, name)
@@ -61,20 +59,17 @@ module Praxis::Mapper
           raise "Association #{name} on #{resource.model} must specify the " +
             "':through' option. "
         end
-
-        new_field = tail.reverse.inject(field) do |thing, step|
+        new_fields = tail.reverse.inject(fields) do |thing, step|
           {step => thing}
         end
-
-        return add_association(resource, head, new_field)
-
+        return add_association(resource, head, new_fields)
       else
         raise "no select applicable for #{association[:type].inspect}"
       end
 
-      unless field == true
+      unless fields == true
         # recurse into the field
-        add(associated_resource,field)
+        add(associated_resource,fields)
       end
     end
 
