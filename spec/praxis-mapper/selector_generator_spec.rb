@@ -8,7 +8,7 @@ describe Praxis::Mapper::SelectorGenerator do
   before do
     generator.add(BlogResource,properties)
   end
-  it 'has specs for many_to_many associations'
+
   let(:expected_selectors) { {} }
 
   context 'for a simple field' do
@@ -54,6 +54,28 @@ describe Praxis::Mapper::SelectorGenerator do
     end
     it 'generates the correct set of selectors' do
       generator.selectors.should eq expected_selectors
+    end
+
+    context 'that is many_to_many' do
+      it 'generates the correct set of selectors' do
+        expected_selectors = {
+          BlogModel => {
+            select: Set.new([:owner_id]),
+            track: Set.new([:owner])
+          },
+          CommentModel => {
+            select: Set.new([:user_model_id, :post_id]),
+            track: Set.new([:post])
+          },
+          UserModel => {
+            select: Set.new([:id]),
+            track: Set.new([:comments])
+          }
+        }
+
+        generator.add(UserResource, id: true, commented_posts: true)
+        generator.selectors.should eq expected_selectors
+      end
     end
   end
 

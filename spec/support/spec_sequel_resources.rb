@@ -51,3 +51,7 @@ class UserResource < BaseResource
 
   property :blogs_summary, dependencies: [:id, :blogs]
 end
+
+class CommentResource < BaseResource
+  model CommentModel
+end

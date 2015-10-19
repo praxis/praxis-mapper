@@ -83,7 +83,8 @@ class UserModel < Sequel::Model(:users)
   one_to_many :administered_blogs, class: 'BlogModel', key: :administrator_id
 
   many_to_many :commented_posts, class: 'PostModel',
-    join_table: 'comments', join_model: 'CommentModel'
+    join_table: 'comments', join_model: 'CommentModel',
+    through: [:comments, :post]
 
   many_to_one :main_blog, class: 'BlogModel', key: :main_blog_id
 end
