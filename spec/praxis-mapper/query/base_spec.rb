@@ -111,6 +111,11 @@ describe Praxis::Mapper::Query::Base do
         subject.select.should include(:id => nil, :name => nil)
       end
 
+      it 'adds model identities if necessary' do
+        subject.select :id
+        subject.select.should eq(id: nil, name: nil)
+      end
+
       it "accepts an array of strings" do
         subject.select "id", "name"
         subject.select.should include("id" => nil, "name" => nil)
@@ -334,7 +339,7 @@ describe Praxis::Mapper::Query::Base do
   context 'with a selectors from the identity map' do
     let(:selectors) { {model => {select: [:name, :state], track: [:address]}} }
 
-    its(:select) { should eq(name: nil, state: nil) }
+    its(:select) { should eq(id: nil, name: nil, state: nil) }
     its(:track) { should eq Set[:address] }
   end
 

@@ -69,7 +69,9 @@ module Praxis::Mapper
         if fields.any?
           return @select if @select == true
 
-          @select = {} if @select.nil? # FIXME: prepopulate this with identities
+          if @select.nil?
+            @select = default_select
+          end
           fields.each do |field|
             case field
             when Symbol, String
@@ -92,6 +94,11 @@ module Praxis::Mapper
         end
       end
 
+      def default_select
+        model.identities.each_with_object({}).each do |identity, hash|
+          hash[identity] = nil
+        end
+      end
 
       # Gets or sets an SQL-like 'WHERE' clause to this query.
       #
