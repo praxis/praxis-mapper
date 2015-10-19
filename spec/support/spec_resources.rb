@@ -5,6 +5,7 @@ class BaseResource < Praxis::Mapper::Resource
     base_href + "/#{self.class.collection_name}/#{self.id}"
   end
 
+  property :href, dependencies: [:id]
 end
 
 class CompositeIdResource < BaseResource
@@ -28,6 +29,9 @@ class SimpleResource < BaseResource
     self.other_model
   end
 
+  property :other_resource, dependencies: [:other_model]
+
+  property :name, dependencies: [:simple_name]
 end
 
 class SimplerResource < BaseResource
@@ -63,8 +67,20 @@ end
 class AddressResource < BaseResource
   model AddressModel
 
-  def href 
+
+  def href
     "/addresses/#{self.id}"
   end
-end
+  property :href, dependencies: [:id]
 
+  def owner_name
+    self.owner.name
+  end
+  property :owner_name, dependencies: ['owner.name']
+
+  def resident_count
+    self.residents.size
+  end
+  property :resident_count, dependencies: [:residents]
+
+end

@@ -1,7 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::Mapper::Resource do
-
   let(:parent_record) { ParentModel.new(id: 100, name: 'george sr') }
   let(:parent_records) { [ParentModel.new(id: 101, name: "georgia"),ParentModel.new(id: 102, name: 'georgina')] }
   let(:record) { SimpleModel.new(id: 103, name: 'george xvi') }
@@ -15,8 +14,24 @@ describe Praxis::Mapper::Resource do
   end
 
   context 'configuration' do
-    subject { SimpleResource }
+    subject(:resource) { SimpleResource }
     its(:model) { should == model }
+
+    context 'properties' do
+      subject(:properties) { resource.properties }
+
+      it 'includes directly-set properties' do
+        properties[:other_resource].should eq(dependencies: [:other_model])
+      end
+
+      it 'inherits from a superclass' do
+        properties[:href].should eq(dependencies: [:id])
+      end
+
+      it 'properly overrides a property from the parent' do
+        properties[:name].should eq(dependencies: [:simple_name])
+      end
+    end
   end
 
   context 'retrieving resources' do

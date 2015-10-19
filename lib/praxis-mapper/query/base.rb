@@ -18,6 +18,7 @@ module Praxis::Mapper
       # @param model [Praxis::Mapper::Model] handle to a Praxis::Mapper model
       # @param &block [Block] will be instance_eval'ed here
       def initialize(identity_map, model, &block)
+
         @identity_map = identity_map
         @model = model
 
@@ -32,8 +33,23 @@ module Praxis::Mapper
 
         @statistics = Hash.new(0) # general-purpose hash
 
+        if (selector = identity_map.selectors[model])
+          self.apply_selector(selector)
+        end
+
         if block_given?
           self.instance_eval(&block)
+        end
+
+      end
+
+      def apply_selector(selector)
+        if selector[:select]
+          self.select(*selector[:select])
+        end
+
+        if selector[:track]
+          self.track(*selector[:track])
         end
       end
 
@@ -51,11 +67,20 @@ module Praxis::Mapper
       # @example select(:account_id, "user_id", {"create_time" => :created_at})
       def select(*fields)
         if fields.any?
-          @select = {} if @select.nil?
+          return @select if @select == true
+
+          if @select.nil?
+            @select = default_select
+          end
           fields.each do |field|
             case field
             when Symbol, String
-              @select[field] = nil
+              if field == :* || field == "*"
+                @select = true
+                break
+              else
+                @select[field] = nil
+              end
             when Hash
               field.each do |alias_name, column_name|
                 @select[alias_name] = column_name
@@ -69,6 +94,11 @@ module Praxis::Mapper
         end
       end
 
+      def default_select
+        model.identities.each_with_object({}).each do |identity, hash|
+          hash[identity] = nil
+        end
+      end
 
       # Gets or sets an SQL-like 'WHERE' clause to this query.
       #
@@ -130,8 +160,8 @@ module Praxis::Mapper
           raise "context #{name.inspect} not found for #{model}"
         end
 
-        select *spec[:select]
-        track *spec[:track]
+        select(*spec[:select])
+        track(*spec[:track])
       end
 
 
@@ -161,7 +191,7 @@ module Praxis::Mapper
         rows = []
 
         original_select = @select
-        self.select *select.flatten.uniq if select
+        self.select(*select.flatten.uniq) if select
 
         values.each_slice(MULTI_GET_BATCH_SIZE) do |batch|
           rows += _multi_get(identity, batch)

@@ -51,7 +51,7 @@ require 'praxis-mapper/identity_map'
 require 'praxis-mapper/model'
 require 'praxis-mapper/query_statistics'
 
-require 'praxis-mapper/sequel_compat' 
+require 'praxis-mapper/sequel_compat'
 
 require 'praxis-mapper/connection_manager'
 
@@ -64,5 +64,6 @@ require 'praxis-mapper/query/base'
 require 'praxis-mapper/query/sql'
 require 'praxis-mapper/query/sequel'
 
-
 require 'praxis-mapper/config_hash'
+
+require 'praxis-mapper/selector_generator'

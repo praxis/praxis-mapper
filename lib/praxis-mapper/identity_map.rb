@@ -10,7 +10,10 @@ module Praxis::Mapper
     class UnsupportedModel < StandardError; end;
     class UnknownIdentity < StandardError; end;
 
-    attr_reader :unloaded, :queries, :blueprint_cache
+    attr_reader :unloaded
+    attr_reader :queries
+    attr_reader :blueprint_cache
+
     attr_accessor :scope
 
     class << self
@@ -69,7 +72,12 @@ module Praxis::Mapper
     def initialize(scope={})
       @connection_manager = ConnectionManager.new
       @scope = scope
+      @selector_generator = Praxis::Mapper::SelectorGenerator.new
       clear!
+    end
+
+    def selectors
+      @selector_generator.selectors
     end
 
     def clear!
@@ -315,7 +323,6 @@ module Praxis::Mapper
       @row_keys[model][key].fetch(value) do
         raise UnloadedRecordException, "Did not load #{model} with #{key} = #{value.inspect}."
       end
-
     end
 
 
@@ -368,12 +375,12 @@ module Praxis::Mapper
         end
       else
         if @row_keys[model].has_key?(key)
-          values.collect do |value|
-            @row_keys[model][key][value]
+          values.collect do |v|
+            @row_keys[model][key][v]
           end.compact
         else
-          values.each_with_object(Array.new) do |value, results|
-            results.push *index(model, key, value)
+          values.each_with_object(Array.new) do |v, results|
+            results.push(*index(model, key, v))
           end
         end
       end
@@ -477,8 +484,6 @@ module Praxis::Mapper
         end
       end
 
-      model = records.first.class
-
       tracked_associations = if (query = records.first._query)
         query.tracked_associations.each do |tracked_association|
           associated_model = tracked_association[:model]
@@ -490,7 +495,6 @@ module Praxis::Mapper
 
       tracked_associations.each do |tracked_association|
         associated_model = tracked_association[:model]
-        association_type = tracked_association[:type]
 
         association_key, row_keys = stage_for!(tracked_association, records)
         row_keys.each do |row_key|
@@ -547,6 +551,10 @@ module Praxis::Mapper
 
     def query_statistics
       QueryStatistics.new(queries)
+    end
+
+    def add_selectors(resource, fields)
+      @selector_generator.add(resource, fields)
     end
 
   end

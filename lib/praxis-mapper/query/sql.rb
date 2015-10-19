@@ -110,7 +110,7 @@ module Praxis::Mapper
       # @return [String] SQL 'SELECT' clause
       def select_clause
         columns = []
-        if select
+        if select && select != true
           select.each do |alias_name, column_name|
             if column_name
               # alias_name is always a String, not a Symbol

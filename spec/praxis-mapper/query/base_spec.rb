@@ -3,15 +3,16 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 describe Praxis::Mapper::Query::Base do
   let(:scope) { {} }
   let(:unloaded_ids) { [1, 2, 3] }
+  let(:selectors) { {} }
+
   let(:connection) { double("connection") }
-  let(:identity_map) { double("identity_map", :scope => scope, :get_unloaded => unloaded_ids) }
+  let(:identity_map) { double("identity_map", scope: scope, get_unloaded: unloaded_ids, selectors: selectors) }
 
   let(:model) { SimpleModel }
 
   let(:expected_ids_condition) { "id IN (#{unloaded_ids.join(", ")})" }
 
-  let(:query) { Praxis::Mapper::Query::Base.new(identity_map, model) }
-  subject { query }
+  subject(:query) { Praxis::Mapper::Query::Base.new(identity_map, model) }
 
   let(:rows) { [
                  {:id => 1, :name => "george jr", :parent_id => 1, :description => "one"},
@@ -110,6 +111,11 @@ describe Praxis::Mapper::Query::Base do
         subject.select.should include(:id => nil, :name => nil)
       end
 
+      it 'adds model identities if necessary' do
+        subject.select :id
+        subject.select.should eq(id: nil, name: nil)
+      end
+
       it "accepts an array of strings" do
         subject.select "id", "name"
         subject.select.should include("id" => nil, "name" => nil)
@@ -135,7 +141,6 @@ describe Praxis::Mapper::Query::Base do
 
         context "with symbols for the field definitions" do
           it "and symbols to specify the field aliases" do
-            definition = {:my_id => :id, :name => :name}
             subject.select :my_id => :id, :name => :name
             subject.select.should include :my_id => :id, :name => :name
           end
@@ -162,6 +167,27 @@ describe Praxis::Mapper::Query::Base do
         subject.select definition
         subject.select.should include(definition)
       end
+
+      context 'selecting all fields' do
+        it 'maps select :* to true' do
+          subject.select :*
+          subject.select.should be(true)
+        end
+
+        it 'preserves * when selecting specific fields' do
+          subject.select :*
+          subject.select :id
+          subject.select.should be(true)
+        end
+
+        it 'overrides any selected fields when * is passed' do
+          subject.select :id
+          subject.select :*
+          subject.select.should be(true)
+        end
+
+      end
+
 
     end
 
@@ -310,9 +336,11 @@ describe Praxis::Mapper::Query::Base do
     end
   end
 
-  context "#raw" do
-    let(:model) { PersonModel }
+  context 'with a selectors from the identity map' do
+    let(:selectors) { {model => {select: [:name, :state], track: [:address]}} }
 
+    its(:select) { should eq(id: nil, name: nil, state: nil) }
+    its(:track) { should eq Set[:address] }
   end
 
 end

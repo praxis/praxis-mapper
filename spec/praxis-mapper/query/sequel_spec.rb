@@ -41,6 +41,17 @@ describe Praxis::Mapper::Query::Sequel do
       query.execute
       connection.sqls.should eq(["SELECT id, name FROM items WHERE (name = 'something') LIMIT 10"])
     end
+
+    context 'with select :* in query' do
+      it 'runs the correct sql with "SELECT *"' do
+        query.select :*
+        connection.sqls.should be_empty
+        query.execute
+        connection.sqls.should eq(["SELECT * FROM items WHERE (name = 'something') LIMIT 10"])
+      end
+
+    end
+
   end
 
 
