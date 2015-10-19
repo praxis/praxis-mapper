@@ -2,6 +2,8 @@
 
 ## next
 
+## 4.2
+
 * Added `Resource.property` to specify the fields and associations from the
   underlying model that are needed by methods added to the `Resource`.
     * For example:

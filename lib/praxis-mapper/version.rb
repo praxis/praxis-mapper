@@ -1,5 +1,5 @@
 module Praxis
   module Mapper
-    VERSION = "4.1.2"
+    VERSION = "4.2"
   end
 end
