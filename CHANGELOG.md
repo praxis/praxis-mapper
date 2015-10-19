@@ -30,8 +30,15 @@
       `PersonModel`.
 * Added the ability to explicitly perform a "SELECT *" by specifying `select :*`
   or `select '*'` in a query.
-
-
+* Added `:through` option to many_to_many associations to define the series of
+  associations necessary to resolve it. This is unused by Sequel, but is required
+  by the SelectorGenerator to handle such associations. Specify it as an array
+  of symbols.
+  * For example: ```!ruby
+    many_to_many :commented_posts, class: 'PostModel',
+      join_table: 'comments', join_model: 'CommentModel',
+      through: [:comments, :post]
+    ```
 
 ## 4.1.2
 

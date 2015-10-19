@@ -2,11 +2,11 @@ require 'spec_helper'
 
 describe Praxis::Mapper::SelectorGenerator do
   let(:properties) { {} }
-
+  let(:resource) { BlogResource }
   subject(:generator) {Praxis::Mapper::SelectorGenerator.new }
 
   before do
-    generator.add(BlogResource,properties)
+    generator.add(resource,properties)
   end
 
   let(:expected_selectors) { {} }
@@ -57,23 +57,21 @@ describe Praxis::Mapper::SelectorGenerator do
     end
 
     context 'that is many_to_many' do
-      it 'generates the correct set of selectors' do
-        expected_selectors = {
-          BlogModel => {
-            select: Set.new([:owner_id]),
-            track: Set.new([:owner])
-          },
+      let(:properties) { {commented_posts: true} }
+      let(:resource) { UserResource }
+      let(:expected_selectors) do
+        {
           CommentModel => {
-            select: Set.new([:user_model_id, :post_id]),
+            select: Set.new([:author_id, :post_id]),
             track: Set.new([:post])
           },
           UserModel => {
-            select: Set.new([:id]),
+            select: Set.new([]),
             track: Set.new([:comments])
           }
         }
-
-        generator.add(UserResource, id: true, commented_posts: true)
+      end
+      it 'generates the correct set of selectors' do
         generator.selectors.should eq expected_selectors
       end
     end
