@@ -16,6 +16,7 @@ FactoryGirl.define do
   factory :post, class: PostModel do
     title { /\w+/.gen }
     body  { /\w+/.gen }
+    created_at { DateTime.now - rand(100) }
     author
   end
 

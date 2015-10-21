@@ -28,6 +28,8 @@ DB.create_table! :posts do
 
   String :title
   String :body
+
+  DateTime :created_at
 end
 
 
@@ -76,7 +78,7 @@ class UserModel < Sequel::Model(:users)
 
   repository_name :sequel
 
-  one_to_many :posts, class: 'PostModel', key: :post_id
+  one_to_many :posts, class: 'PostModel', key: :author_id
   one_to_many :comments, class: 'CommentModel', key: :author_id
   one_to_many :blogs, class: 'BlogModel', key: :owner_id
 

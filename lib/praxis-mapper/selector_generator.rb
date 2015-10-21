@@ -8,9 +8,15 @@ module Praxis::Mapper
       @selectors = Hash.new do |hash, key|
         hash[key] = {select: Set.new, track: Set.new}
       end
+      @seen = Hash.new do |hash, resource|
+        hash[resource] = Set.new
+      end
     end
 
     def add(resource, fields)
+      return if @seen[resource].include? fields
+      @seen[resource] << fields
+
       fields.each do |name, field|
         map_property(resource, name, field)
       end
@@ -20,11 +26,11 @@ module Praxis::Mapper
       selectors[resource.model][:select] = true
     end
 
-    def map_property(resource, name, field)
+    def map_property(resource, name, fields)
       if resource.properties.key?(name)
-        add_property(resource, name)
+        add_property(resource, name, fields)
       elsif resource.model.associations.key?(name)
-        add_association(resource, name, field)
+        add_association(resource, name, fields)
       else
         add_select(resource, name)
       end
@@ -73,13 +79,22 @@ module Praxis::Mapper
       end
     end
 
-    def add_property(resource, name)
+    def add_property(resource, name, fields)
       dependencies = resource.properties[name][:dependencies]
-      return if dependencies.nil?
-
-      dependencies.each do |dependency|
-        apply_dependency(resource, dependency)
+      if dependencies
+        dependencies.each do |dependency|
+          apply_dependency(resource, dependency)
+        end
       end
+
+      head, *tail = resource.properties[name][:through]
+      return if head.nil?
+
+      new_fields = tail.reverse.inject(fields) do |thing, step|
+        {step => thing}
+      end
+
+      add_association(resource, head, new_fields)
     end
 
     def apply_dependency(resource, dependency)
