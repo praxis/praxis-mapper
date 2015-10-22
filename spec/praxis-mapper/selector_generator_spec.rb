@@ -151,21 +151,42 @@ describe Praxis::Mapper::SelectorGenerator do
     end
   end
 
-  context 'with a property that groups multiple fields' do
-    let(:properties) { {owner_full_name: {first: true}} }
+  context 'using a property that specifies a :through option' do
+    let(:properties) { {recent_posts: {author: {full_name: true}}} }
+    let(:resource) { UserResource }
     let(:expected_selectors) do
       {
-        BlogModel => {
-          select: Set.new([:owner_id]),
-          track: Set.new([:owner])
+        PostModel => {
+          select: Set.new([:author_id, :created_at]),
+          track: Set.new([:author])
         },
         UserModel => {
           select: Set.new([:first_name, :last_name]),
-          track: Set.new()
+          track: Set.new([:posts])
         }
       }
     end
-    it 'generates selectors that ignore any unapplicable subrefinements' do
+    it 'generates the correct set of selectors' do
+      generator.selectors.should eq expected_selectors
+    end
+  end
+
+  context 'with a property without the :through option' do
+    let(:resource) { UserResource }
+    let(:properties) { {blogs_summary: {size: true}} }
+    let(:expected_selectors) do
+     {
+       BlogModel => {
+         select: Set.new([:owner_id]),
+         track: Set.new()
+       },
+       UserModel => {
+         select: Set.new([:id]),
+         track: Set.new([:blogs])
+       }
+     }
+    end
+    it 'ignores any subsequent fields when generating selectors' do
       generator.selectors.should eq expected_selectors
     end
   end

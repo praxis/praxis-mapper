@@ -37,10 +37,16 @@ end
 class UserResource < BaseResource
   model UserModel
 
+  property :full_name, dependencies: [:first_name, :last_name]
+  property :blogs_summary, dependencies: [:id, :blogs]
+
+  property :recent_posts, dependencies: ['posts.created_at'],
+    through: [:posts]
+
+
   def full_name
     "#{first_name} #{last_name}"
   end
-  property :full_name, dependencies: [:first_name, :last_name]
 
   def blogs_summary
     {
@@ -49,9 +55,16 @@ class UserResource < BaseResource
     }
   end
 
-  property :blogs_summary, dependencies: [:id, :blogs]
+  def recent_posts
+    posts.sort_by(&:created_at).reverse[2]
+  end
+
 end
 
 class CommentResource < BaseResource
   model CommentModel
+end
+
+class PostResource < BaseResource
+  model PostModel
 end

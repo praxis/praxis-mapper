@@ -2,6 +2,13 @@
 
 ## next
 
+* Added a `:through` option to `Resource.property` to specify that the property
+  effectively traverses the association(s) given so that it may continue to
+  process additional subfield selections.
+* Fixed `SystemStackError` from `IdentityMap#add_selectors` if the provided
+  field hashes are self-referencing. I.e. `{author: {posts: {author: {...}}}}`
+  
+
 ## 4.2
 
 * Added `Resource.property` to specify the fields and associations from the
