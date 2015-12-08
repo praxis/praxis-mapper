@@ -83,7 +83,12 @@ module Praxis::Mapper
       dependencies = resource.properties[name][:dependencies]
       if dependencies
         dependencies.each do |dependency|
-          apply_dependency(resource, dependency)
+          # if dependency includes the name, then map it directly as the field
+          if dependency == name
+            add_select(resource, name)
+          else
+            apply_dependency(resource, dependency)
+          end
         end
       end
 

@@ -171,6 +171,23 @@ describe Praxis::Mapper::SelectorGenerator do
     end
   end
 
+  context 'with a property with a circular definition (ie, includes its own field)' do
+    let(:resource) { PostResource }
+
+    let(:properties) { {id: true, slug: true} }
+    let(:expected_selectors) do
+      {
+        PostModel => {
+          select: Set.new([:id, :slug, :title]),
+          track: Set.new
+        }
+      }
+    end
+    it 'generates the correct set of selectors' do
+      generator.selectors.should eq expected_selectors
+    end
+  end
+
   context 'with a property without the :through option' do
     let(:resource) { UserResource }
     let(:properties) { {blogs_summary: {size: true}} }
@@ -237,6 +254,7 @@ describe Praxis::Mapper::SelectorGenerator do
     it 'generates the correct set of selectors' do
       generator.selectors.should eq(expected_selectors)
     end
+
   end
 
 end
