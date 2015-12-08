@@ -27,6 +27,7 @@ DB.create_table! :posts do
   Integer :author_id
 
   String :title
+  String :slug
   String :body
 
   DateTime :created_at

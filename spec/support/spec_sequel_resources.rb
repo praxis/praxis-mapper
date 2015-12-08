@@ -67,4 +67,13 @@ end
 
 class PostResource < BaseResource
   model PostModel
+
+  property :slug, dependencies: [:slug, :title]
+
+  # generate default slug from title if one wasn't set in the db
+  def slug
+    return record.slug if record.slug
+    record.title.gsub(" ", "-").downcase
+  end
+
 end
