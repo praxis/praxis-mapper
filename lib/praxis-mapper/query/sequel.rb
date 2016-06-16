@@ -52,7 +52,7 @@ module Praxis::Mapper
       #
       # @return [Array] result-set
       def _execute(ds=nil)
-        Praxis::Mapper.logger.debug "SQL:\n#{self.describe}\n"
+        Praxis::Mapper.logger.debug "SQL:\n#{self.describe(ds)}\n"
         self.statistics[:datastore_interactions] += 1
         start_time = Time.now
 
@@ -60,7 +60,7 @@ module Praxis::Mapper
           unless ds.nil?
             warn 'WARNING: Query::Sequel#_execute ignoring passed dataset due to previously-specified raw SQL'
           end
-          connection.run(@raw_query).to_a
+          connection[@raw_query].to_a
         else
           (ds || self.dataset).to_a
         end
@@ -70,8 +70,8 @@ module Praxis::Mapper
       end
 
       # @see #sql
-      def describe
-        self.sql
+      def describe(ds=nil)
+        (ds || self).sql
       end
 
       # Constructs a raw SQL statement.
