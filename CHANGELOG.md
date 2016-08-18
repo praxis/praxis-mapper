@@ -2,6 +2,8 @@
 
 ## next
 
+## 4.3
+
 * Added a `:through` option to `Resource.property` to specify that the property
   effectively traverses the association(s) given so that it may continue to
   process additional subfield selections.
