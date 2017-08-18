@@ -2,6 +2,9 @@
 
 ## next
 
+* Fix selector generator to properly handle composite key associations.
+* Fix `default_selection` in `Query::Base` to accountt for models with composite identities.
+
 ## 4.3
 
 * Added a `:through` option to `Resource.property` to specify that the property
