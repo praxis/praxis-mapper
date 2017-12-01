@@ -96,7 +96,11 @@ module Praxis::Mapper
 
       def default_select
         model.identities.each_with_object({}).each do |identity, hash|
-          hash[identity] = nil
+          if identity.is_a? Array
+            identity.each { |id| hash[id] = nil }
+          else
+            hash[identity] = nil
+          end
         end
       end
 

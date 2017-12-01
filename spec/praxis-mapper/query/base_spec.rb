@@ -191,6 +191,21 @@ describe Praxis::Mapper::Query::Base do
 
     end
 
+    context "#default selection fields are always included" do
+      it "using a non-identity field" do
+        subject.select :name
+        subject.select.should include(:id => nil, :name => nil)
+      end
+
+      context "for a model with a composite identity" do
+        let(:model) { CompositeIdModel }
+        it "has a default" do
+          subject.select :id
+          subject.select.should include(:id => nil, :type => nil)
+        end
+      end
+    end
+
     context "with no query body" do
       subject { Praxis::Mapper::Query::Base.new(identity_map, model) }
 

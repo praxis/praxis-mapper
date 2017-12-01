@@ -56,10 +56,14 @@ module Praxis::Mapper
       case association[:type]
       when :many_to_one
         add_track(resource, name)
-        add_select(resource, association[:key])
+        Array(association[:key]).each do |akey|
+          add_select(resource, akey)
+        end
       when :one_to_many
         add_track(resource, name)
-        add_select(associated_resource, association[:key])
+        Array(association[:key]).each do |akey|
+          add_select(associated_resource, akey)
+        end
       when :many_to_many
         head, *tail = association.fetch(:through) do
           raise "Association #{name} on #{resource.model} must specify the " +

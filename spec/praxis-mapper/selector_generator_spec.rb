@@ -75,6 +75,26 @@ describe Praxis::Mapper::SelectorGenerator do
         generator.selectors.should eq expected_selectors
       end
     end
+
+    context 'that uses a composite key' do
+      let(:properties) { {composite_model: {id: true, type: true} } }
+      let(:resource) { OtherResource }
+      let(:expected_selectors) do
+        {
+          OtherModel => {
+            select: Set.new([:composite_id,:composite_type]),
+            track: Set.new([:composite_model])
+          },
+          CompositeIdModel => {
+            select: Set.new([:id,:type]),
+            track: Set.new
+          }
+        }
+      end
+      it 'generates the correct set of selectors' do
+        generator.selectors.should eq expected_selectors
+      end
+    end
   end
 
   context 'for a property that specifies a field from an association' do
