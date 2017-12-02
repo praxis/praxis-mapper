@@ -65,14 +65,18 @@ module Praxis::Mapper
           add_select(associated_resource, akey)
         end
       when :many_to_many
-        head, *tail = association.fetch(:through) do
-          raise "Association #{name} on #{resource.model} must specify the " +
-            "':through' option. "
+        # If we haven't explicitly added the "through" option in the association
+        # then we'll assume the underlying ORM is able to fill in the gap. We will
+        # simply add the fields for the associated resource below
+        if association.key? :through
+          head, *tail = association[:through]
+          new_fields = tail.reverse.inject(fields) do |thing, step|
+            {step => thing}
+          end
+          return add_association(resource, head, new_fields)
+        else
+          add_track(resource, name)
         end
-        new_fields = tail.reverse.inject(fields) do |thing, step|
-          {step => thing}
-        end
-        return add_association(resource, head, new_fields)
       else
         raise "no select applicable for #{association[:type].inspect}"
       end
