@@ -76,6 +76,27 @@ describe Praxis::Mapper::SelectorGenerator do
       end
     end
 
+    context 'that is many_to_many without a :through option' do
+      let(:properties) { {other_commented_posts: { id: true} } }
+      let(:resource) { UserResource }
+      let(:expected_selectors) do
+        {
+          PostModel => {
+            select: Set.new([:id]),
+            track: Set.new([])
+          },
+          UserModel => {
+            select: Set.new([]),
+            track: Set.new([:other_commented_posts])
+          }
+        }
+      end
+      it 'generates the correct set of selectors' do
+        generator.selectors.should eq expected_selectors
+      end
+    end
+
+
     context 'that uses a composite key' do
       let(:properties) { {composite_model: {id: true, type: true} } }
       let(:resource) { OtherResource }

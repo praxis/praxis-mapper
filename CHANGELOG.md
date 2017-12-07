@@ -4,6 +4,8 @@
 
 * Fix selector generator to properly handle composite key associations.
 * Fix `default_selection` in `Query::Base` to accountt for models with composite identities.
+* Support `many_to_many` relationships without requiring the `:through` annotations (for ORMs that
+  can transparently load the intermediate relationships)
 
 ## 4.3
 

@@ -89,6 +89,10 @@ class UserModel < Sequel::Model(:users)
     join_table: 'comments', join_model: 'CommentModel',
     through: [:comments, :post]
 
+  many_to_many :other_commented_posts, class: 'PostModel',
+    left_key: :author_id, right_key: :post_id,
+    join_table: 'comments', join_model: 'CommentModel' #Explicitly not specify the :through option
+
   many_to_one :main_blog, class: 'BlogModel', key: :main_blog_id
 end
 
