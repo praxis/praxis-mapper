@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Josep M. Blanquer","Dane Jensen"]
   spec.summary       = %q{A multi-datastore library designed for efficiency in loading large datasets.}
   spec.email = ["blanquer@gmail.com","dane.jensen@gmail.com"]
-  
+
   spec.homepage = "https://github.com/rightscale/praxis-mapper"
   spec.license = "MIT"
   spec.required_ruby_version = ">=2.1"
@@ -17,16 +17,16 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.files         = `git ls-files -z`.split("\x0")
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
-  
+
   spec.add_runtime_dependency(%q<randexp>, ["~> 0"])
   spec.add_runtime_dependency(%q<sequel>, ["~> 4"])
   spec.add_runtime_dependency(%q<activesupport>, [">= 3"])
 
-  spec.add_development_dependency "bundler", "~> 1.6"
+  spec.add_development_dependency('bundler', ['>= 1'])
   spec.add_development_dependency "rake", "~> 0"
 
   spec.add_development_dependency(%q<redcarpet>, ["< 3.0"])
-  spec.add_development_dependency(%q<yard>, ["~> 0.8.7"])
+  spec.add_development_dependency(%q<yard>)
   spec.add_development_dependency(%q<guard>, ["~> 2"])
   spec.add_development_dependency(%q<guard-rspec>, [">= 0"])
   spec.add_development_dependency(%q<rspec>, ["< 2.99"])
@@ -35,6 +35,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency(%q<pry-stack_explorer>, ["~> 0"])
   spec.add_development_dependency(%q<fuubar>, ["~> 1"])
   spec.add_development_dependency('sqlite3')
-  spec.add_development_dependency('factory_girl')
+  spec.add_development_dependency('factory_bot')
   spec.add_development_dependency('coveralls')
 end

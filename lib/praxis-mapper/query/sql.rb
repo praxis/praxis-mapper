@@ -56,7 +56,7 @@ module Praxis::Mapper
           dataset = dataset.where(@where)
         end
 
-        clause = dataset.opts[:where].sql_literal(dataset)
+        clause = dataset.literal(dataset.opts[:where])
 
         original_where = @where
 
