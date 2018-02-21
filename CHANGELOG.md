@@ -2,6 +2,8 @@
 
 ## next
 
+* Support wrapping associations in resources for targets that do not explicitly contain the `Enumerable` module. For example,  `ActiveRecord::Associations::CollectionProxy` are actually not enumerable, yet they proxy the calls directly to the underlying objects when necessary.
+
 ## 4.4 (12/10/2017)
 
 * Fix selector generator to properly handle composite key associations.
