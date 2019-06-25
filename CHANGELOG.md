@@ -1,5 +1,9 @@
 # praxis-mapper changelog
 
+## next 
+
+* Support wrapping associations in resources for targets that do not explicitly contain the `Enumerable` module. For example,  `ActiveRecord::Associations::CollectionProxy` are actually not enumerable, yet they proxy the calls directly to the underlying objects when necessary.
+
 ## 4.4.1 (6/25/2019)
 
 * Fix `Resource` to not override association methods already defined 

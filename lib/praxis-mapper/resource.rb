@@ -145,11 +145,12 @@ module Praxis::Mapper
 
 
     def self.wrap(records)
-      case records
-      when nil
+      if records.nil?
         return []
-      when Enumerable
-        return records.compact.collect { |record| self.for_record(record) }
+      elsif( records.is_a?(Enumerable) )
+        return records.compact.map { |record| self.for_record(record) }
+      elsif ( records.respond_to?(:to_a) )
+        return records.to_a.compact.map { |record| self.for_record(record) }
       else
         return self.for_record(records)
       end

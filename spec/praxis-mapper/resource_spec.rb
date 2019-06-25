@@ -200,6 +200,14 @@ describe Praxis::Mapper::Resource do
       wrapped_set.should be_kind_of(Array)
       wrapped_set.length.should be(1)
     end
+    
+    it 'works with non-enumerable objects, that respond to collect' do
+      collectable = double("ArrayProxy")
+      collectable.stub(:to_a) { [record, record] }
+
+      wrapped_set = SimpleResource.wrap(collectable)
+      wrapped_set.length.should be(2)
+    end
 
     it 'works regardless of the resource class used' do
       SimpleResource.wrap(record).should be(OtherResource.wrap(record))
