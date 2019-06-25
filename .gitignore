@@ -24,3 +24,5 @@ bin
 .idea
 
 tmp/
+
+Gemfile.lock

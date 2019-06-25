@@ -100,10 +100,9 @@ module Praxis::Mapper
       return if model.nil?
 
       model.associations.each do |k,v|
-        if self.instance_methods.include? k
-          warn "WARNING: #{self.name} already has method named #{k.inspect}. Will not define accessor for resource association."
+        unless self.instance_methods.include? k
+          define_model_association_accessor(k,v)
         end
-        define_model_association_accessor(k,v)
       end
     end
 
