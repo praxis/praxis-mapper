@@ -32,7 +32,7 @@ require_relative 'spec_fixtures'
 require 'praxis-mapper/support'
 
 require 'randexp'
-require 'factory_girl'
+require 'factory_bot'
 
 require 'pry'
 
@@ -47,12 +47,12 @@ RSpec.configure do |config|
     /org\/jruby\/.*.java/
   ]
 
-  config.include FactoryGirl::Syntax::Methods
+  config.include FactoryBot::Syntax::Methods
 
   config.before(:suite) do
-    FactoryGirl.find_definitions
+    FactoryBot.find_definitions
     Sequel::Model.db.transaction do
-      FactoryGirl.lint
+      FactoryBot.lint
       raise Sequel::Rollback
     end
 

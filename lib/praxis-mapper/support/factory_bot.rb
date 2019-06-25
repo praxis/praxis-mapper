@@ -1,5 +1,5 @@
-# Hackish write support for Praxis::Mapper, needed for FactoryGirl.create calls.
-# TODO: get rid of this and use current FactoryGirl features to do it the right way.
+# Hackish write support for Praxis::Mapper, needed for FactoryBot.create calls.
+# TODO: get rid of this and use current FactoryBot features to do it the right way.
 
 module Praxis::Mapper
   class Model

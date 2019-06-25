@@ -2,6 +2,9 @@
 
 ## next
 
+* Fix `Resource` to not override association methods already defined 
+* Migrate to FactoryBot
+
 ## 4.4 (12/10/2017)
 
 * Fix selector generator to properly handle composite key associations.
