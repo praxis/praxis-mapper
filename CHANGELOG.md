@@ -1,6 +1,6 @@
 # praxis-mapper changelog
 
-## next
+## 4.4.1 (6/25/2019)
 
 * Fix `Resource` to not override association methods already defined 
 * Migrate to FactoryBot
