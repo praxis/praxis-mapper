@@ -73,8 +73,8 @@ module Praxis::Mapper
       self.decorations[name] = Class.new(ResourceDecorator, &block)
     end
 
-    def self.property(name, **options)
-      self.properties[name] = options
+    def self.property(name, dependencies: nil, through: nil)
+      self.properties[name] = {dependencies: dependencies, through: through}
     end
 
     def self._finalize!
